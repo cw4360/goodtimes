@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{# replaces default headstuff block #}
+{% block headstuff %}
+<title>Search Results</title>
+{% endblock %}
+
+{# replaces default content block #}
+{% block content %}
+    {# If length of search results is 0, displays that no person/movie 
+        was in the database. Else, displays the search results matching 
+        the query in a list with the appropriate hyperlinks #}
+    {% if length == 0 %}
+    <h1>Not Found</h1>
+    <p>Sorry, no {{kind}} results were found</p>
+
+    {% else %}
+        {% if kind == "username"%}
+        <p class="description"> Users matching "{{query}}":</p>
+        <article>
+            <ol>
+                {% for user in search_results %}
+                    <li>{{user.name}} ({{user.username}})</li>
+                {% endfor %}
+            </ol>
+        </article>
+
+        {% else %}
+            <p class="description">Media matching {{query}}:</p>
+            <article>
+                <ol>
+                    {% for media in search_results %}
+                    <li>{{media.title}} ({{media.type}}, {{media.releaseYear}})</li>
+                {% endfor %}
+                </ol>
+            </article>
+        {% endif %}
+    {% endif %}
+{% endblock %}

@@ -11,6 +11,7 @@ app = Flask(__name__)
 
 import cs304dbi as dbi
 import random
+import queries
 
 app.secret_key = 'your secret here' # replace that with a random key
 app.secret_key = ''.join([ random.choice(('ABCDEFGHIJKLMNOPQRSTUVXYZ' +
@@ -24,6 +25,20 @@ app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 @app.route('/')
 def index():
     return "Welcome to GoodTimes!"
+    
+@app.route('/search/', methods = ['GET', 'POST'])
+def search():
+    if request.method == 'GET':
+        return render_template('search.html')
+    else:
+        conn = dbi.connect()
+        query = request.form['query']
+        kind = request.form['kind']
+
+        # do search and store search results
+        search_results = queries.do_search(conn, query, kind)
+        return render_template("search_results.html", 
+                query=query, kind=kind, search_results=search_results, length=len(search_results))
 
 @app.before_first_request
 def init_db():
