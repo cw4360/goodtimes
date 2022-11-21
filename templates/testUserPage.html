@@ -1,0 +1,34 @@
+<!doctype html>
+    <html lang='en'>
+    <head>
+        <meta charset='utf-8'>
+        <meta name=author content="GoodTimes">
+        {% block headstuff %}
+        <title>{{title}}</title>
+        {% endblock %}
+        <link rel="stylesheet" type="text/css" 
+              href="{{ url_for('static', filename='style.css') }}">
+    </head>
+
+    <body>
+        <p>Here is a list of all the collections:</p>   
+        {% for collection in collections %}
+            <p>{{collection}}</p>
+        {% endfor %}
+
+        <form method = "post" action = "{{url_for('testUserPage')}}">
+            <label for="deleteForm">Collections to Delete (temporarily hardcoded to uID 1-> rik):</label>
+            <select name = "collectionID" id="deleteForm">
+                {% for collection in collections%}
+                <option id="collectionID" name="collectionID" value="{{collection.collectionID}}">{{collection.name}}</option>
+                {% endfor %}
+            </select>
+            <input type="submit" name="submit" value="delete">
+            <p>
+                <input type="submit" name="submit" value="create collection">
+            </p>
+        </form>
+
+    </body>
+
+</html>
