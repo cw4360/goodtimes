@@ -10,6 +10,18 @@ def do_search(conn, query, kind):
         ["%"+query+"%"])
     return curs.fetchall()
 
+def getAllUsers(conn):
+    curs = dbi.dict_cursor(conn)
+    # get all media from the media table
+    curs.execute('select * from user')
+    return curs.fetchall()
+
+def getAllMedia(conn):
+    curs = dbi.dict_cursor(conn)
+    # get all media from the media table
+    curs.execute('select * from media')
+    return curs.fetchall()
+
 # inserts data for new collection into collections table and returns new ID
 def insertCollection(conn, result):
     curs = dbi.dict_cursor(conn)
