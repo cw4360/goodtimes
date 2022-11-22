@@ -10,6 +10,14 @@ def do_search(conn, query, kind):
         ["%"+query+"%"])
     return curs.fetchall()
 
+def insert_media(conn, media_title, media_release, media_type):
+   '''Given media data, inserts media into database'''
+   curs = dbi.dict_cursor(conn)
+   curs.execute('''insert into media(title,releaseYear,type)
+                values (%s, %s, %s)''', 
+                [media_title, media_release, media_type])
+   conn.commit()
+
 # inserts data for new collection into collections table and returns new ID
 def insertCollection(conn, result):
     curs = dbi.dict_cursor(conn)
@@ -59,3 +67,10 @@ def deleteMediaFromCollection(conn, cID, result):
     curs.execute('delete from mediaInCollections where collectionID=%s and mediaID=%s;',
         (cID, result['mediaID']))
     conn.commit()
+
+# inserts media into collection
+def insertInCollection (conn, cID, mediaID, media_title):
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''insert into mediaInCollections(mediaID, rating, review, moodTag, genreTag, audienceTag)
+        values (%s, %s, %s, %s, %s, %s)''',
+        [mediaID, media_rating, media_review, media_mood, media_genre, media_audience])

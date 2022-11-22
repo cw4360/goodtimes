@@ -1,0 +1,23 @@
+
+{% extends "base.html" %}
+
+{% block content%}
+    <h1>Insert Movie</h1>
+    <form method="post" action="{{ url_for('insert') }}">
+        <label for="media-title">Media Title:
+            <input id="media-title" type="text" name="media-title">
+        </label>
+        <br>
+        <label for="media-release">Media Release Year:
+            <input id="media-release" type="text" name="media-release">
+        </label>
+        <br>
+        <label for="media-type">Media Type:
+            <input id="media-type" type="text" name="media-type">
+        </label>
+        <br>
+        <br>
+        <input class="button" type="submit" value="Insert Movie">
+    </form>
+ {% endblock%} 
+
