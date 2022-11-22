@@ -1,0 +1,55 @@
+
+{% extends "base.html" %}
+{% block content%}
+
+    <h1>Update Ratings, Reviews, and Tags</h1>
+    <form method="post" action="{{ url_for('update', mediaID=mediaID) }}">
+        <label for="media_rating">Title:
+            <select name = "media_rating" id="ratingMedia">
+                <option id="vbad_rating" name="media_rating" value="1">1</option>
+                <option id="bad_rating" name="media_rating" value="2">2</option>
+                <option id="mid_rating" name="media_rating" value="3">3</option>
+                <option id="good_rating" name="media_rating" value="4">4</option>
+                <option id="vgood_rating" name="media_rating" value="5">5</option>
+                {% endfor %}
+            </select>
+        </label>
+        <br>
+        <label for="media_review">Media Review:
+            <input id="media_review" type="text" name="media_review" value="{{review}}">
+        </label>
+        <br>
+        <label for="moodTag">Title:
+            <select name = "moodTag" id="moodTag">
+                <option id="happy" name="moodTag" value="happy">Happy</option>
+                <option id="sad" name="moodTag" value="sad">Sad</option>
+                <option id="angry" name="moodTag" value="angry">Angry</option>
+                <option id="calm" name="moodTag" value="calm">Calm</option>
+                {% endfor %}
+            </select>
+        </label>
+        <br>
+        <label for="genreTag">Title:
+            <select name = "genreTag" id="genreTag">
+                <option id="action" name="genreTag" value="action">Action</option>
+                <option id="comedy" name="genreTag" value="comedy">Comedy</option>
+                <option id="romance" name="genreTag" value="romance">Romance</option>
+                {% endfor %}
+            </select>
+        </label>
+        <br>
+        <label for="audienceTag">Title:
+            <select name = "audienceTag" id="audienceTag">
+                <option id="family" name="audienceTag" value="family">Family</option>
+                <option id="so" name="audienceTag" value="significant other">Significant Other</option>
+                <option id="children" name="audienceTag" value="children">Children</option>
+                {% endfor %}
+            </select>
+        </label>
+        <br>
+        <br>
+        <input class="button" type="submit" value="update" name="submit">
+        <input class="button" type="submit" value="delete" name="submit">
+    </form>
+  
+{% endblock %}

@@ -7,14 +7,14 @@
 
 {# replaces default content block #}
 {% block content %}
-    {# If length of search results is 0, displays that no person/movie 
+    <!-- {# If length of search results is 0, displays that no person/movie 
         was in the database. Else, displays the search results matching 
         the query in a list with the appropriate hyperlinks #}
     {% if length == 0 %}
     <h1>Not Found</h1>
     <p>Sorry, no {{kind}} results were found</p>
 
-    {% else %}
+    {% else %} -->
         {% if kind == "username"%}
         <p class="description"> Users matching "{{query}}":</p>
         <article>
@@ -30,7 +30,7 @@
             <article>
                 <ol>
                     {% for media in search_results %}
-                    <li>{{media.title}} ({{media.type}}, {{media.releaseYear}})</li>
+                    <li>{{media.title}} ({{media.releaseYear}}, {{media.type}})</li>
                 {% endfor %}
                 </ol>
             </article>

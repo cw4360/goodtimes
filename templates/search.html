@@ -16,4 +16,22 @@
         <input type="submit">
     </label>
 </form> 
+
+<p class="description"> Explore all users:</p>
+<article>
+    <ol>
+        {% for user in all_users %}
+            <li>{{user.name}} ({{user.username}}, {{user.uID}})</li>
+        {% endfor %}
+    </ol>
+</article>
+
+<p class="description"> Explore all media:</p>
+<article>
+    <ol>
+        {% for media in all_media %}
+            <li>{{media.title}} ({{media.releaseYear}}, {{media.type}})</li>
+        {% endfor %}
+    </ol>
+</article>
 {% endblock %}

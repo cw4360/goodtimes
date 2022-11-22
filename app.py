@@ -29,17 +29,46 @@ def index():
     
 @app.route('/search/', methods = ['GET', 'POST'])
 def search():
+    conn = dbi.connect()
     if request.method == 'GET':
-        return render_template('search.html')
+        all_users = queries.getAllUsers(conn)
+        all_media = queries.getAllMedia(conn)
+        return render_template('search.html', 
+            all_users=all_users, all_media=all_media)
     else:
-        conn = dbi.connect()
         query = request.form['query']
         kind = request.form['kind']
 
         # do search and store search results
         search_results = queries.do_search(conn, query, kind)
-        return render_template("search_results.html", 
+
+        if len(search_results) == 0:
+            return redirect(url_for('insert'))
+        else:
+            return render_template("search_results.html", 
                 query=query, kind=kind, search_results=search_results, length=len(search_results))
+
+@app.route('/insert_new/', methods=["GET", "POST"])
+def insert():
+    #renders the insert media form if media doesn't exist
+    if request.method == "GET":
+        return render_template('insert.html')
+    else:
+        conn = dbi.connect()
+        media_title = request.form['media-title']
+        media_release = request.form['media-release']
+        media_type = request.form['media-type']
+
+         # detect incomplete form
+        if media_title == "" or media_release == "" or media_type == "":
+            return render_template('insert.html', msg="Form is not complete, fill in missing info")
+
+        # if media id doesn't exist
+        else:
+            # insert the media
+            queries.insert_media(conn, media_title, media_release, media_type)
+            flash('{{media_title}} successfully inserted!')
+            return render_template('insert.html', media_title=media-title, media_release=media-release, media_type=media-type)
 
 @app.route('/createCollection/', methods = ["GET", "POST"])
 def createCollection():
