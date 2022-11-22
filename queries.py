@@ -9,3 +9,53 @@ def do_search(conn, query, kind):
         curs.execute('select * from media where title like %s', 
         ["%"+query+"%"])
     return curs.fetchall()
+
+# inserts data for new collection into collections table and returns new ID
+def insertCollection(conn, result):
+    curs = dbi.dict_cursor(conn)
+    # the uID situation is temporary rn, will be updated once users can create accounts
+    curs.execute('insert into collections(name, uID) values (%s, %s);', 
+        (result['collectionName'], result['userID']))
+    conn.commit()
+
+# returns last_insert_id()
+def getLatestId(conn):
+    curs = dbi.dict_cursor(conn)
+    curs.execute('select last_insert_id()')
+    return curs.fetchone()
+
+def getMediaTitle(conn, mediaID):
+    curs = dbi.dict_cursor(conn)
+    curs.execute('select title from media where mediaID=%s',
+        (mediaID))
+    return curs.fetchone()
+
+# gets all collections of user, given their uID (uID temp hard coded)
+def getAllCollections(conn, tempUID):
+    curs = dbi.dict_cursor(conn)
+    curs.execute('select * from collections where uID = %s;',
+        (tempUID))
+    return curs.fetchall()
+
+#gets all the media within a specified collection
+def getMediaInCollection(conn, cID):
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''select title, m2.mediaID, m2.collectionID from media, 
+        (select * from mediaInCollections where collectionID=%s) as m2
+        where media.mediaID = m2.mediaID''',
+        (cID))
+    return curs.fetchall()
+
+# deletes a collection, currently only available on user page (uID temp hard coded)
+def deleteCollection(conn, result):
+    curs = dbi.dict_cursor(conn)
+    curs.execute('delete from collections where collectionID=%s;',
+        (result['collectionID']))
+    conn.commit()
+
+# deletes a media from a collection, availble on collection detail page
+def deleteMediaFromCollection(conn, cID, result):
+    curs = dbi.dict_cursor(conn)
+    curs.execute('delete from mediaInCollections where collectionID=%s and mediaID=%s;',
+        (cID, result['mediaID']))
+    conn.commit()

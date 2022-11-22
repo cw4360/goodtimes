@@ -9,6 +9,12 @@
         <link rel="stylesheet" type="text/css" 
               href="{{ url_for('static', filename='style.css') }}">
     </head>
+
+    <nav>
+        <a href="{{url_for('search')}}">Search Page</a> 
+        <a href="{{url_for('createCollection')}}">Create a Collection</a> 
+    </nav>
+
     <body>
         {% block content %}
         {% endblock %}

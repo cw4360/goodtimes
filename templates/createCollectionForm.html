@@ -1,29 +1,17 @@
-<!doctype html>
-    <html lang='en'>
-    <head>
-        <meta charset='utf-8'>
-        <meta name=author content="GoodTimes">
-        {% block headstuff %}
-        <title>{{title}}</title>
-        {% endblock %}
-        <link rel="stylesheet" type="text/css" 
-              href="{{ url_for('static', filename='style.css') }}">
-    </head>
+{% extends "base.html" %}
 
-    <body>
-        <form method="post" action="{{url_for('createCollection')}}">
-            <label for="collectionName">Collection Name:
-                <input id="collectionName" name="collectionName" type="text" required>
-            </label>
+{% block content %}
+    <form method="post" action="{{url_for('createCollection')}}">
+        <label for="collectionName">Collection Name:
+            <input id="collectionName" name="collectionName" type="text" required>
+        </label>
     
-            <label for="userID">User ID:
-                <input id="userID" name="userID" type="text" required>
-            </label>
+        <label for="userID">User ID:
+            <input id="userID" name="userID" type="text" required>
+        </label>
             
-            <p> 
-                <input type="submit" value="Create Collection">
-            </p>
-         </form>    
-    </body>
-
-</html>
+        <p> 
+            <input type="submit" value="Create Collection">
+        </p>
+    </form>    
+{% endblock %}

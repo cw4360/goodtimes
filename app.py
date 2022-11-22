@@ -24,7 +24,8 @@ app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 
 @app.route('/')
 def index():
-    return "Welcome to GoodTimes!"
+    #return "Welcome to GoodTimes!"
+    return render_template("base.html")
     
 @app.route('/search/', methods = ['GET', 'POST'])
 def search():
@@ -43,117 +44,61 @@ def search():
 @app.route('/createCollection/', methods = ["GET", "POST"])
 def createCollection():
     conn = dbi.connect()
+    formInput = request.form
 
-    if request.method == "POST":
-        print ("post method")
-        print (request.form['collectionName'])
-        print (request.form['userID'])
-        # start of code to be put in other py file
-        # this would take in conn, result of the form, and uID
-        # rn this is a temp uID, will be updated once user can create an account
-        curs = dbi.dict_cursor(conn)
-        curs.execute('''insert into collections(name, uID) 
-        values (%s, %s);''',
-            (
-            request.form['collectionName'], 
-            request.form['userID']
-            # result['collectionName'], result['userID']
-            )
-        )
-        conn.commit()
-        # end of code to be put in other py file?
-        curs.execute('select last_insert_id()')
-        newID = curs.fetchone()
-
-        return redirect(url_for('testCollectionPage', cID=newID['last_insert_id()']))
-        #return redirect(url_for('testUserPage'))
-
-    else:
-        print ("get method")
+    if request.method == "GET":
         return render_template('createCollectionForm.html')
 
-    #return render_template('createCollectionForm.html')
+    else:
+        queries.insertCollection(conn, formInput)
+        newID = queries.getLatestId(conn)
+        # redirects to collection detail page, will be updated with correct url_for()
+        return redirect(url_for('collectionPage', cID=newID['last_insert_id()']))
 
-@app.route('/testCollectionPage/<cID>', methods = ["GET", "POST"])
-def testCollectionPage(cID):
+
+@app.route('/collection/<cID>', methods = ["GET", "POST"])
+def collectionPage(cID): # collection detail page, includes all media in that collection
     conn = dbi.connect()
+    mediaCollection = queries.getMediaInCollection(conn, cID)
 
     if request.method == "POST":
-        print ('post method')
+    
         if request.form['submit'] == 'back to user page':
-
-            # code to be put in other py file
-            curs = dbi.dict_cursor(conn)
-            collectionID = request.form['collectionID']
-            curs.execute('''delete from mediaInCollections where collectionID=%s and mediaID=%s;''',
-                (collectionID, mediaID)
-            )
-            conn.commit()
-            # end of code to be put in other py file
-
-            return redirect(url_for('testUserPage'))
+            return redirect(url_for('userPage'))
 
         if request.form['submit'] == 'delete media':
-            return redirect(url_for('testUserPage'))
+            toDelete = request.form
+            print (toDelete)
+            queries.deleteMediaFromCollection(conn, cID, toDelete)
+            # updating the media in the collection
+            mediaCollection = queries.getMediaInCollection(conn, cID)
 
-        return render_template('testCollectionPage.html', collectionID = cID)
+        return render_template('collectionPage.html', collectionID = cID, mediaInCollection = mediaCollection)
     else:
-        print ('get method')
-        return render_template('testCollectionPage.html', collectionID = cID)
+        return render_template('collectionPage.html', collectionID = cID, mediaInCollection = mediaCollection)
 
-@app.route('/testUserPage/', methods = ["GET", "POST"])
-def testUserPage():
+# will add uid to the end of url
+@app.route('/user/', methods = ["GET", "POST"])
+def userPage():
     conn = dbi.connect()
-
-    # start of code to be put in other py file
-    tempUID = 1 #hard coded for now
-    curs = dbi.dict_cursor(conn)
-    curs.execute('''select * from collections where uID = %s;''',
-        (tempUID)
-    )
-    collections = curs.fetchall()
-    # end of code to be put in other py file
+    tempUID = 1
+    collections = queries.getAllCollections(conn, tempUID)
 
     if request.method == "POST":
 
         if request.form['submit'] == 'create collection':
             return redirect(url_for('createCollection'))
 
-        if request.form['submit'] == 'delete':
-            #curs = dbi.dict_cursor(conn)
-            collectionID = request.form['collectionID']
-            curs.execute('''delete from collections where collectionID=%s;''',
-                (collectionID)
-            )
-            conn.commit()
-
+        if request.form['submit'] == 'delete': #may need to update value to be more specific
+            toDelete = request.form
+            queries.deleteCollection(conn, toDelete)
             # this updates collections so the page rerenders correctly
-            curs.execute('''select * from collections where uID = %s;''',
-                (tempUID)
-            )
-            collections = curs.fetchall()
+            collections = queries.getAllCollections(conn, tempUID)
 
-        # hypothetical code for deleting media from a collection
-        if request.form['submit'] == 'delete media':
-            #curs = dbi.dict_cursor(conn)                
-            collectionID = request.form['collectionID']
-            curs.execute('''delete from collections where collectionID=%s;''',
-                (collectionID)
-            )
-            conn.commit()
-
-            # this updates collections so the page rerenders correctly
-            curs.execute('''select * from collections where uID = %s;''',
-                (tempUID)
-            )
-            collections = curs.fetchall()
-
-        return render_template('testUserPage.html', collections = collections)
+        return render_template('userPage.html', collections = collections)
 
     else:
-        return render_template('testUserPage.html', collections = collections)
-
-    #return render_template('testUserPage.html', collections = collections)
+        return render_template('userPage.html', collections = collections)
 
 @app.before_first_request
 def init_db():
