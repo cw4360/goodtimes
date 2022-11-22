@@ -41,7 +41,11 @@ def search():
 
         # do search and store search results
         search_results = queries.do_search(conn, query, kind)
-        return render_template("search_results.html", 
+
+        if len(search_results) == 0:
+            return redirect(url_for('insert'))
+        else:
+            return render_template("search_results.html", 
                 query=query, kind=kind, search_results=search_results, length=len(search_results))
 
 @app.route('/insert_new/', methods=["GET", "POST"])
