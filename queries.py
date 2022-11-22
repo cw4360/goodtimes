@@ -17,6 +17,17 @@ def insert_media(conn, media_title, media_release, media_type):
                 values (%s, %s, %s)''', 
                 [media_title, media_release, media_type])
    conn.commit()
+def getAllUsers(conn):
+    curs = dbi.dict_cursor(conn)
+    # get all media from the media table
+    curs.execute('select * from user')
+    return curs.fetchall()
+
+def getAllMedia(conn):
+    curs = dbi.dict_cursor(conn)
+    # get all media from the media table
+    curs.execute('select * from media')
+    return curs.fetchall()
 
 # inserts data for new collection into collections table and returns new ID
 def insertCollection(conn, result):

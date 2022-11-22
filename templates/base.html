@@ -13,6 +13,8 @@
     <nav>
         <a href="{{url_for('search')}}">Search Page</a> 
         <a href="{{url_for('createCollection')}}">Create a Collection</a> 
+        <a href="{{ url_for('collectionPage', cID=3)}}">Collection Page, ID 3</a>
+        <a href="{{ url_for('userPage')}}">User Profile Page</a>
     </nav>
 
     <body>

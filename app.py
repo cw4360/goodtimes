@@ -29,10 +29,13 @@ def index():
     
 @app.route('/search/', methods = ['GET', 'POST'])
 def search():
+    conn = dbi.connect()
     if request.method == 'GET':
-        return render_template('search.html')
+        all_users = queries.getAllUsers(conn)
+        all_media = queries.getAllMedia(conn)
+        return render_template('search.html', 
+            all_users=all_users, all_media=all_media)
     else:
-        conn = dbi.connect()
         query = request.form['query']
         kind = request.form['kind']
 
