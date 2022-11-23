@@ -134,13 +134,34 @@ def userPage():
     else:
         return render_template('userPage.html', collections = collections)
 
-@app.route('/media_details/<int:mediaID>')
+
+@app.route('/media_details/<int:mediaID>', methods = ["GET", "POST"])
 def media_info(mediaID):
     conn = dbi.connect()
     media_info = queries.get_media(conn, mediaID)
-    return render_template('mediaPage.html',  
-                          media_info= media_info,
-                          )
+    if request.method == "POST":
+        if request.form['submit'] == 'add media':
+                mediaID = request.form['media-add']
+                cID = request.form['collection-add']
+                rating = request.form['rating']
+                review = request.form['review']
+                moodTag = request.form['mood']
+                genreTag = request.form['genre']
+                audienceTag = request.form['audience']
+                queries.insertInCollection(conn, mediaID, cID, rating, review, moodTag, genreTag, audienceTag)
+                # updating the media in the collection
+                #mediaCollection = queries.getMediaInCollection(conn, cID)
+                return render_template('mediaPage.html', media= media_info)
+        else:
+            return render_template('mediaPage.html',  
+                media= media_info, 
+                )
+
+    else:
+        return render_template('mediaPage.html',  
+                media= media_info, 
+                )
+                          
 @app.route('/update/<cID>', methods=['GET', 'POST'])
 def update(cID):
     # thinking of adding the update form for a media to a separate page
