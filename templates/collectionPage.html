@@ -4,10 +4,13 @@
     <p>Collection ID is: {{collectionID}}</p>
 
     <p>Here is a list of all media in this collection:</p>   
-    {% for media in mediaInCollection %}
-        <p>Media: {{media.title}}</p>
-        <p>(with ID: {{media.mediaID}})</p>
-    {% endfor %}
+    <article>
+        <ul>
+            {% for media in mediaInCollection %}
+            <li>{{media.title}} (with ID: {{media.mediaID}})</li>
+            {% endfor %}
+        </ul>
+    </article> 
 
     <form method = "post" action = "{{url_for('collectionPage', cID = collectionID)}}">
         <label for="deleteMedia">Media to Delete:</label>

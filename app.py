@@ -48,7 +48,7 @@ def search():
             return render_template("search_results.html", 
                 query=query, kind=kind, search_results=search_results, length=len(search_results))
 
-@app.route('/insert_new/', methods=["GET", "POST"])
+@app.route('/insert/', methods=["GET", "POST"])
 def insert():
     #renders the insert media form if media doesn't exist
     if request.method == "GET":
