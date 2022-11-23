@@ -134,6 +134,13 @@ def userPage():
     else:
         return render_template('userPage.html', collections = collections)
 
+@app.route('/media_details/<int:mediaID>')
+def media_info(mediaID):
+    conn = dbi.connect()
+    media_info = queries.get_media(conn, mediaID)
+    return render_template('mediaPage.html',  
+                          media_info= media_info,
+                          )
 @app.before_first_request
 def init_db():
     db_to_use = 'goodtime_db' # use team database

@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+            {% for media_info in media_info %}
+                <h1 class = "title">{{media_info.title}}</h1>
+                <p>{{media_info.title}}, released in {{media_info.release}}</p>
+            {% endfor %}
+            
+{% endblock %}

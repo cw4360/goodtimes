@@ -50,6 +50,12 @@ def getMediaTitle(conn, mediaID):
         (mediaID))
     return curs.fetchone()
 
+def get_media(conn, mediaID):
+    curs = dbi.dict_cursor(conn)
+    curs.execute('select * from media where mediaID=%s',
+        (mediaID))
+    return curs.fetchone()
+
 # gets all collections of user, given their uID (uID temp hard coded)
 def getAllCollections(conn, tempUID):
     curs = dbi.dict_cursor(conn)
