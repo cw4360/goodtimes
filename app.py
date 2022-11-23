@@ -102,6 +102,12 @@ def collectionPage(cID): # collection detail page, includes all media in that co
             # updating the media in the collection
             mediaCollection = queries.getMediaInCollection(conn, cID)
 
+        if request.form['submit'] == 'update media':
+            toUpdate = request.form
+            print(toUpdate)
+            queries.updateMediaFromCollection(conn, cID, toUpdate)
+            mediaCollection = queries.getMediaInCollection(conn, cID) # get media in collection again
+
         return render_template('collectionPage.html', collectionID = cID, mediaInCollection = mediaCollection)
     else:
         return render_template('collectionPage.html', collectionID = cID, mediaInCollection = mediaCollection)
@@ -133,6 +139,11 @@ def userPage():
 
     else:
         return render_template('userPage.html', collections = collections)
+
+@app.route('/update/<cID>', methods=['GET', 'POST'])
+def update(cID):
+    # thinking of adding the update form for a media to a separate page
+    pass
 
 @app.before_first_request
 def init_db():
