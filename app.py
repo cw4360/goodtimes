@@ -141,6 +141,11 @@ def media_info(mediaID):
     return render_template('mediaPage.html',  
                           media_info= media_info,
                           )
+@app.route('/update/<cID>', methods=['GET', 'POST'])
+def update(cID):
+    # thinking of adding the update form for a media to a separate page
+    pass
+
 @app.before_first_request
 def init_db():
     db_to_use = 'goodtime_db' # use team database

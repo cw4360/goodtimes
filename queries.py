@@ -34,8 +34,8 @@ def getAllMedia(conn):
 def insertCollection(conn, result):
     curs = dbi.dict_cursor(conn)
     # the uID situation is temporary rn, will be updated once users can create accounts
-    curs.execute('insert into collections(name, uID) values (%s, %s);', 
-        (result['collectionName'], result['userID']))
+    curs.execute('insert into collections(name, uID) values (%s, %s)', 
+        [result['collectionName'], result['userID']])
     conn.commit()
 
 # returns last_insert_id()
@@ -47,7 +47,7 @@ def getLatestId(conn):
 def getMediaTitle(conn, mediaID):
     curs = dbi.dict_cursor(conn)
     curs.execute('select title from media where mediaID=%s',
-        (mediaID))
+        [mediaID])
     return curs.fetchone()
 
 def get_media(conn, mediaID):
@@ -60,30 +60,45 @@ def get_media(conn, mediaID):
 def getAllCollections(conn, tempUID):
     curs = dbi.dict_cursor(conn)
     curs.execute('select * from collections where uID = %s;',
-        (tempUID))
+        [tempUID])
     return curs.fetchall()
 
 #gets all the media within a specified collection
 def getMediaInCollection(conn, cID):
     curs = dbi.dict_cursor(conn)
-    curs.execute('''select title, m2.mediaID, m2.collectionID from media, 
-        (select * from mediaInCollections where collectionID=%s) as m2
-        where media.mediaID = m2.mediaID''',
-        (cID))
+    curs.execute('''select * from media inner join mediaInCollections 
+        using (mediaID) where collectionID = %s''',
+        [cID])
     return curs.fetchall()
 
 # deletes a collection, currently only available on user page (uID temp hard coded)
 def deleteCollection(conn, result):
     curs = dbi.dict_cursor(conn)
-    curs.execute('delete from collections where collectionID=%s;',
-        (result['collectionID']))
+    curs.execute('delete from collections where collectionID=%s',
+        [result['collectionID']])
     conn.commit()
 
-# deletes a media from a collection, availble on collection detail page
+# deletes a media from a collection, available on collection detail page
 def deleteMediaFromCollection(conn, cID, result):
     curs = dbi.dict_cursor(conn)
-    curs.execute('delete from mediaInCollections where collectionID=%s and mediaID=%s;',
-        (cID, result['mediaID']))
+    curs.execute('delete from mediaInCollections where collectionID=%s and mediaID=%s',
+        [cID, result['mediaID']])
+    conn.commit()
+
+# updates a media from a collection, available on collection detail page
+def updateMediaFromCollection(conn, cID, result):
+    # is there a more succinct way to change these values to None?
+    resultA = {}
+    for kind in ['rating', 'review', 'mood', 'genre', 'audience']:
+        if result[kind] == '':
+            resultA[kind] = None
+        else: resultA[kind] = result[kind]
+
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''update mediaInCollections set rating=%s, review=%s, moodTag=%s, 
+        genreTag=%s, audienceTag=%s where collectionID=%s and mediaID=%s''',
+        [resultA['rating'], resultA['review'], resultA['mood'], resultA['genre'], 
+         resultA['audience'], cID, result['mediaID']])
     conn.commit()
 
 # inserts media into collection
