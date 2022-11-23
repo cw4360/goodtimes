@@ -17,15 +17,16 @@ def insert_media(conn, media_title, media_release, media_type):
                 values (%s, %s, %s)''', 
                 [media_title, media_release, media_type])
    conn.commit()
+
+# gets all users in the database
 def getAllUsers(conn):
     curs = dbi.dict_cursor(conn)
-    # get all media from the media table
     curs.execute('select * from user')
     return curs.fetchall()
 
+# gets all media in the database
 def getAllMedia(conn):
     curs = dbi.dict_cursor(conn)
-    # get all media from the media table
     curs.execute('select * from media')
     return curs.fetchall()
 
