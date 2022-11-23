@@ -17,6 +17,7 @@ def insert_media(conn, media_title, media_release, media_type):
                 values (%s, %s, %s)''', 
                 [media_title, media_release, media_type])
    conn.commit()
+   
 def getAllUsers(conn):
     curs = dbi.dict_cursor(conn)
     # get all media from the media table

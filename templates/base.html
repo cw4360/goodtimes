@@ -18,6 +18,16 @@
     </nav>
 
     <body>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flashMessages">
+                {% for error in messages %}
+                <p>{{error}}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+
         {% block content %}
         {% endblock %}
     </body>
