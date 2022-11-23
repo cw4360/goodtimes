@@ -55,9 +55,9 @@ def insert():
         return render_template('insert.html')
     else:
         conn = dbi.connect()
-        media_title = request.form['media-title']
-        media_release = request.form['media-release']
-        media_type = request.form['media-type']
+        media_title = request.form['media_title']
+        media_release = request.form['media_release']
+        media_type = request.form['media_type']
 
          # detect incomplete form
         if media_title == "" or media_release == "" or media_type == "":
@@ -67,8 +67,8 @@ def insert():
         else:
             # insert the media
             queries.insert_media(conn, media_title, media_release, media_type)
-            flash('{{media_title}} successfully inserted!')
-            return render_template('insert.html', media_title=media-title, media_release=media-release, media_type=media-type)
+            flash('Media successfully inserted!')
+            return render_template('insert.html', media_title=media_title, media_release=media_release, media_type=media_type)
 
 @app.route('/createCollection/', methods = ["GET", "POST"])
 def createCollection():
