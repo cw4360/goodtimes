@@ -118,6 +118,11 @@ def userPage():
         if request.form['submit'] == 'create collection':
             return redirect(url_for('createCollection'))
 
+        if request.form['submit'] == 'view':
+            toView = request.form
+            print (toView)
+            return redirect(url_for('collectionPage', cID = toView['collectionID']))
+
         if request.form['submit'] == 'delete': #may need to update value to be more specific
             toDelete = request.form
             queries.deleteCollection(conn, toDelete)
