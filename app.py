@@ -79,8 +79,8 @@ def createCollection():
         return render_template('createCollectionForm.html')
 
     else:
-        queries.insertCollection(conn, formInput)
-        newID = queries.getLatestId(conn)
+        newID = queries.insertCollection(conn, formInput)
+        # newID = queries.getLatestId(conn)
         # redirects to collection detail page, will be updated with correct url_for()
         return redirect(url_for('collectionPage', cID=newID['last_insert_id()']))
 
