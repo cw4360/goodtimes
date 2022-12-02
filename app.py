@@ -25,7 +25,7 @@ app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 @app.route('/')
 def index():
     #return "Welcome to GoodTimes!"
-    return render_template("base.html")
+    return render_template("home.html")
     
 @app.route('/search/', methods = ['GET', 'POST'])
 def search():
