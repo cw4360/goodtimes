@@ -37,18 +37,26 @@ def insertCollection(conn, result):
     curs.execute('insert into collections(name, uID) values (%s, %s)', 
         [result['collectionName'], result['userID']])
     conn.commit()
-
-# returns last_insert_id()
-def getLatestId(conn):
-    curs = dbi.dict_cursor(conn)
     curs.execute('select last_insert_id()')
     return curs.fetchone()
+
+# returns last_insert_id()
+# def getLatestId(conn):
+#     curs = dbi.dict_cursor(conn)
+#     curs.execute('select last_insert_id()')
+#     return curs.fetchone()
 
 def getMediaTitle(conn, mediaID):
     curs = dbi.dict_cursor(conn)
     curs.execute('select title from media where mediaID=%s',
         [mediaID])
     return curs.fetchone()
+
+def get_media(conn, mediaID):
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''select * from media where mediaID=%s''',
+        {mediaID})
+    return curs.fetchall()
 
 # gets all collections of user, given their uID (uID temp hard coded)
 def getAllCollections(conn, tempUID):
@@ -96,8 +104,9 @@ def updateMediaFromCollection(conn, cID, result):
     conn.commit()
 
 # inserts media into collection
-def insertInCollection (conn, cID, mediaID, media_title):
+def insertInCollection (conn, mediaID, cID, rating, review, moodTag, genreTag, audienceTag):
     curs = dbi.dict_cursor(conn)
-    curs.execute('''insert into mediaInCollections(mediaID, rating, review, moodTag, genreTag, audienceTag)
-        values (%s, %s, %s, %s, %s, %s)''',
-        [mediaID, media_rating, media_review, media_mood, media_genre, media_audience])
+    curs.execute('''insert into mediaInCollections(mediaID, collectionID, rating, review, moodTag, genreTag, audienceTag)
+        values (%s, %s, %s, %s, %s, %s, %s)''',
+        [mediaID, cID, rating, review, moodTag, genreTag, audienceTag])
+    conn.commit()

@@ -30,7 +30,7 @@
             <article>
                 <ol>
                     {% for media in search_results %}
-                    <li>{{media.title}} ({{media.releaseYear}}, {{media.type}})</li>
+                    <li><a href={{url_for('media_info', mediaID=media.mediaID)}}>{{media.title}} ({{media.releaseYear}}, {{media.type}})</a></li>
                 {% endfor %}
                 </ol>
             </article>
