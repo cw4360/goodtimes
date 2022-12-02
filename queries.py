@@ -37,12 +37,14 @@ def insertCollection(conn, result):
     curs.execute('insert into collections(name, uID) values (%s, %s)', 
         [result['collectionName'], result['userID']])
     conn.commit()
-
-# returns last_insert_id()
-def getLatestId(conn):
-    curs = dbi.dict_cursor(conn)
     curs.execute('select last_insert_id()')
     return curs.fetchone()
+
+# returns last_insert_id()
+# def getLatestId(conn):
+#     curs = dbi.dict_cursor(conn)
+#     curs.execute('select last_insert_id()')
+#     return curs.fetchone()
 
 def getMediaTitle(conn, mediaID):
     curs = dbi.dict_cursor(conn)
