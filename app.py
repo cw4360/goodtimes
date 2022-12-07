@@ -12,6 +12,7 @@ app = Flask(__name__)
 import cs304dbi as dbi
 import random
 import queries
+import bcrypt
 
 app.secret_key = 'your secret here' # replace that with a random key
 app.secret_key = ''.join([ random.choice(('ABCDEFGHIJKLMNOPQRSTUVXYZ' +
@@ -26,6 +27,47 @@ app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 def index():
     #return "Welcome to GoodTimes!"
     return render_template("home.html")
+
+@app.route('/join/', methods=['POST'])
+def join():
+    username = request.form.get('username')
+    passwd1 = request.form.get('password1')
+    passwd2 = request.form.get('password2')
+    if passwd1 != passwd2:
+        flash('Passwords do not match')
+        return redirect(url_for('index'))
+    hashed = bcrypt.hashpw(passwd1.encode('utf-8'), bcrypt.gensalt())
+    stored = hashed.decode('utf-8')
+    print(passwd1, type(passwd1), hashed, stored)
+    conn = dbi.connect()
+    curs.dbi.cursor(conn)
+    try:
+        curs.execute('''insert into user(uid,username,hashed)
+            values(null,%s,%s)''', [username, stored])
+        conn.commit()
+    except Exception as err:
+        flash('The username is taken: {}'.format(repr(err)))
+        return redirect(url_for('index'))
+    curs.execute('select last_insert_id()')
+    row = curs.fetchone()
+    uid = row[0]
+    flash('FYI, you were issued UID {}'.format(uid))
+    session['username'] = username
+    session['uid'] = uid
+    session['logged_in'] = True
+    session['visits'] = 1
+    return redirect(url_for('user', username=username))
+
+@app.route('/login/', methods=['POST'])
+def login():
+    username = request.form.get('username')
+    passwd = request.form.get('password')
+    conn = dbi.connect()
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''select uid,hashed from user
+                    where username = %s''', [username])
+    row = curs.fetchone()
+    ### Catherine: Left off here. Finish adding code from CS304: Logins
     
 @app.route('/search/', methods = ['GET', 'POST'])
 def search():
