@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <p>Collection ID is: {{collectionID}}</p>
+    <h1>{{collectionName}}</h1>
 
     <p>Here is a list of all media in this collection:</p>   
     <table>
@@ -81,13 +81,13 @@
 
     <!-- Delete Media -->
     <form method = "post" action = "{{url_for('collectionPage', cID = collectionID)}}">
-        <label for="deleteMedia">Media to Delete:</label>
+        <label for="deleteMedia">Delete Media From Collection:</label>
         <select name = "mediaID" id="deleteMedia">
             {% for media in mediaInCollection%}
             <option value="{{media.mediaID}}">{{media.title}}</option>
             {% endfor %}
         </select>
-        <p><input type="submit" name="submit" value="delete media"></p>
-        <input type="submit" name="submit" value="back to user page">
+        <input type="submit" name="submit" value="delete media">
+        <p><input type="submit" name="submit" value="back to user page"></p>
     </form>
 {% endblock %}

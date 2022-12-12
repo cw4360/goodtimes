@@ -1,8 +1,5 @@
-'''
-CS304: GoodTimes Final Project
-Team: Audrey Liang, Rik Sampson, Catherine Wang
-Fall 2022
-'''
+# CS304 Final Project: GoodTimes
+# Team: Audrey, Catherine, Rik
 
 from flask import (Flask, render_template, make_response, url_for, request,
                    redirect, flash, session, send_from_directory, jsonify)
@@ -11,6 +8,7 @@ app = Flask(__name__)
 
 import cs304dbi as dbi
 import random
+import bcrypt
 import queries
 
 app.secret_key = 'your secret here' # replace that with a random key
@@ -24,11 +22,98 @@ app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 
 @app.route('/')
 def index():
-    #return "Welcome to GoodTimes!"
-    return render_template("base.html")
+    """ Renders GoodTimes' home page, which includes functionality
+    to create an account or log into their user account."""
+    return render_template("home.html")
+
+@app.route('/join/', methods=['POST'])
+def join():
+    """ Given a username and a confirmed password, adds new user to
+    GoodTimes user table in database. Then logs user in. """
+    username = request.form.get('username')
+    passwd1 = request.form.get('password1')
+    passwd2 = request.form.get('password2')
+    if passwd1 != passwd2:
+        flash('Passwords do not match')
+        return redirect(url_for('index'))
+    hashed = bcrypt.hashpw(passwd1.encode('utf-8'), bcrypt.gensalt())
+    stored = hashed.decode('utf-8')
+    print("password:", passwd1, type(passwd1), hashed, stored)
+    conn = dbi.connect()
+    curs = dbi.cursor(conn)
+    try:
+        curs.execute('''insert into user(uid,username,hashed)
+            values(null,%s,%s)''', [username, stored])
+        conn.commit()
+    except Exception as err:
+        flash('The username is taken: {}'.format(repr(err)))
+        return redirect(url_for('index'))
+    curs.execute('select last_insert_id()')
+    row = curs.fetchone()
+    uid = row[0]
+    flash('FYI, you were issued UID {}'.format(uid))
+    session['username'] = username
+    session['uid'] = uid
+    session['logged_in'] = True
+    session['visits'] = 1
+    return redirect(url_for('user', username=username))
+
+@app.route('/login/', methods=['POST'])
+def login():
+    """ Given the username and password of an existing 
+    GoodTimes user, logs the user into their account and 
+    renders their user page."""
+    username = request.form.get('username')
+    passwd = request.form.get('password')
+    conn = dbi.connect()
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''select uid,hashed from user
+                    where username = %s''', [username])
+    row = curs.fetchone()
+    if row is None:
+        # same response as wrong password, so no information
+        # about what went wrong
+        flash('Login incorrect. Try again or create account')
+        return redirect(url_for('index'))
+    stored = row['hashed']
+    print('database has stored: {} {}'.format(stored,type(stored)))
+    print('form supplied passwd: {} {}'.format(passwd,type(passwd)))
+    hashed2 = bcrypt.hashpw(passwd.encode('utf-8'),
+                            stored.encode('utf-8'))
+    hashed2_str = hashed2.decode('utf-8')
+    print('rehash is: {} {}'.format(hashed2_str,type(hashed2_str)))
+    if hashed2_str == stored:
+        print('Password matches!')
+        flash('Successfully logged in as '+username)
+        session['username'] = username
+        session['uid'] = row['uid']
+        session['logged_in'] = True
+        session['visits'] = 1
+        return redirect( url_for('user', username=username) )
+    else:
+        flash('Login incorrect. Try again or join')
+        return redirect( url_for('index'))
+
+@app.route('/logout/')
+def logout():
+    """ Logs user out of GoodTimes."""
+    if 'username' in session:
+        username = session['username']
+        session.pop('username')
+        session.pop('uid')
+        session.pop('logged_in')
+        flash('You are logged out')
+        return redirect(url_for('index'))
+    else:
+        flash('You are not logged in. Please login or join.')
+        return redirect(url_for('index'))
     
 @app.route('/search/', methods = ['GET', 'POST'])
 def search():
+    """ On the search page, users will initially see a list of all 
+    GoodTime users and all media. If no results found, renders a 
+    page to insert a new media to the database. Otherwise, displays
+    the search results as a list."""
     conn = dbi.connect()
     if request.method == 'GET':
         all_users = queries.getAllUsers(conn)
@@ -38,9 +123,12 @@ def search():
     else:
         query = request.form['query']
         kind = request.form['kind']
+        mood = request.form['mood']
+        genre = request.form['genre']
+        audience = request.form['audience']
 
         # do search and store search results
-        search_results = queries.do_search(conn, query, kind)
+        search_results = queries.do_search(conn, query, kind, mood, genre, audience)
 
         if len(search_results) == 0:
             return redirect(url_for('insert'))
@@ -55,6 +143,7 @@ def insert():
         return render_template('insert.html')
     else:
         conn = dbi.connect()
+        mediaID = request.form['media-add']
         media_title = request.form['media_title']
         media_release = request.form['media_release']
         media_type = request.form['media_type']
@@ -88,12 +177,12 @@ def createCollection():
 @app.route('/collection/<cID>', methods = ["GET", "POST"])
 def collectionPage(cID): # collection detail page, includes all media in that collection
     conn = dbi.connect()
+    collectionName = queries.getCollectionName(conn, cID)
     mediaCollection = queries.getMediaInCollection(conn, cID)
 
     if request.method == "POST":
-    
         if request.form['submit'] == 'back to user page':
-            return redirect(url_for('userPage'))
+            return redirect(url_for('user', username=session['username']))
 
         if request.form['submit'] == 'delete media':
             toDelete = request.form
@@ -102,46 +191,51 @@ def collectionPage(cID): # collection detail page, includes all media in that co
             # updating the media in the collection
             mediaCollection = queries.getMediaInCollection(conn, cID)
 
-        return render_template('collectionPage.html', collectionID = cID, mediaInCollection = mediaCollection)
+        return render_template('collectionPage.html', 
+            collectionID = cID, collectionName=collectionName, mediaInCollection = mediaCollection)
     else:
-        return render_template('collectionPage.html', collectionID = cID, mediaInCollection = mediaCollection)
+        return render_template('collectionPage.html', 
+            collectionID = cID, collectionName=collectionName, mediaInCollection = mediaCollection)
 
-# will add uid to the end of url
-@app.route('/user/', methods = ["GET", "POST"])
-def userPage():
+@app.route('/user/<username>', methods = ["GET", "POST"])
+def user(username):
+    """ Given a user's unique username, renders their user page with
+    all their collections displayed and options to manage their 
+    collections."""
     conn = dbi.connect()
-    tempUID = 1
-    collections = queries.getAllCollections(conn, tempUID)
+    uid = session['uid']
+    collections = queries.getAllCollections(conn, uid)
 
     if request.method == "POST":
-
         if request.form['submit'] == 'create collection':
             return redirect(url_for('createCollection'))
 
+        # Catherine's comment: Not sure if we need this with the boxes
         if request.form['submit'] == 'view':
             toView = request.form
-            print (toView)
+            print(toView)
             return redirect(url_for('collectionPage', cID = toView['collectionID']))
 
         if request.form['submit'] == 'delete': #may need to update value to be more specific
             toDelete = request.form
             queries.deleteCollection(conn, toDelete)
             # this updates collections so the page rerenders correctly
-            collections = queries.getAllCollections(conn, tempUID)
+            collections = queries.getAllCollections(conn, uid)
 
-        return render_template('userPage.html', collections = collections)
-
+        return render_template('userPage.html', username=username, collections=collections)
     else:
-        return render_template('userPage.html', collections = collections)
-
+        return render_template('userPage.html', username=username, collections=collections)
 
 @app.route('/media_details/<int:mediaID>', methods = ["GET", "POST"])
 def media_info(mediaID):
     conn = dbi.connect()
+    # uID=session['uid']
     media_info = queries.get_media(conn, mediaID)
     if request.method == "POST":
         if request.form['submit'] == 'add media':
                 mediaID = request.form['media-add']
+                # uID=session['uid']
+                # collections=queries.getAllCollections(conn, uID)
                 cID = request.form['collection-add']
                 rating = request.form['rating']
                 review = request.form['review']
@@ -151,15 +245,15 @@ def media_info(mediaID):
                 queries.insertInCollection(conn, mediaID, cID, rating, review, moodTag, genreTag, audienceTag)
                 # updating the media in the collection
                 #mediaCollection = queries.getMediaInCollection(conn, cID)
-                return render_template('mediaPage.html', media= media_info)
+                return render_template('mediaPage.html', media_info= media_info)
         else:
             return render_template('mediaPage.html',  
-                media= media_info, 
+                media_info= media_info, mediaID=media['mediaID']
                 )
 
     else:
         return render_template('mediaPage.html',  
-                media= media_info, 
+                media_info= media_info, mediaID=mediaID
                 )
                           
 @app.route('/update/<cID>', methods=['GET', 'POST'])
