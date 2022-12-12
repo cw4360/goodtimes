@@ -3,18 +3,26 @@
 {% block content %}
     <h1>{{username}}'s Profile</h1>
     <p>Here is a list of all collections:</p>  
-    <article>
-        <ol>
-            {% for collection in collections %}
-            <li>
-                <a href="{{ url_for('collectionPage', cID=collection.collectionID)}}">{{collection.name}} (with ID: {{collection.collectionID}})</a>
-            </li>
-            {% endfor %}
-            <!-- {% for user in search_results %}
+    <div class="collection-container">
+        {% for collection in collections %}
+        <a href="{{ url_for('collectionPage', cID=collection.collectionID)}}">
+            <div class="collection-box">
+                <p>{{collection.name}}</p>
+                <p>(with ID: {{collection.collectionID}})</p>
+            </div>
+        </a>
+        {% endfor %}
+        <!-- Create New Collection currently has no functionality -->
+        <a>
+            <div class="collection-box">
+                <p>Create New Collection</p>
+                <p>(+)</p>
+            </div>
+        </a>
+    </div>
+    <!-- {% for user in search_results %}
                 <li>{{user.name}} ({{user.username}})</li>
             {% endfor %} -->
-        </ol>
-    </article> 
 
     <form method = "post" action = "{{url_for('user', username=username)}}">
         <label for="viewForm">View Collection:</label>
@@ -25,9 +33,9 @@
         </select>
         <input type="submit" name="submit" value="view">
     </form>
-    <p></p>
+
     <form method = "post" action = "{{url_for('user', username=username)}}">
-        <label for="deleteForm">Collections to Delete:</label>
+        <label for="deleteForm">Delete Collection:</label>
         <select name = "collectionID" id="deleteForm">
             {% for collection in collections%}
             <option id="collectionID" name="collectionID" value="{{collection.collectionID}}">{{collection.name}}</option>

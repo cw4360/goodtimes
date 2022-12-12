@@ -1,3 +1,6 @@
+# CS304 Final Project: GoodTimes
+# Team: Audrey, Catherine, Rik
+
 from flask import (Flask, render_template, make_response, url_for, request,
                    redirect, flash, session, send_from_directory, jsonify)
 from werkzeug.utils import secure_filename
@@ -19,11 +22,14 @@ app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 
 @app.route('/')
 def index():
-    #return "Welcome to GoodTimes!"
+    """ Renders GoodTimes' home page, which includes functionality
+    to create an account or log into their user account."""
     return render_template("home.html")
 
 @app.route('/join/', methods=['POST'])
 def join():
+    """ Given a username and a confirmed password, adds new user to
+    GoodTimes user table in database. Then logs user in. """
     username = request.form.get('username')
     passwd1 = request.form.get('password1')
     passwd2 = request.form.get('password2')
@@ -54,6 +60,9 @@ def join():
 
 @app.route('/login/', methods=['POST'])
 def login():
+    """ Given the username and password of an existing 
+    GoodTimes user, logs the user into their account and 
+    renders their user page."""
     username = request.form.get('username')
     passwd = request.form.get('password')
     conn = dbi.connect()
@@ -87,6 +96,7 @@ def login():
 
 @app.route('/logout/')
 def logout():
+    """ Logs user out of GoodTimes."""
     if 'username' in session:
         username = session['username']
         session.pop('username')
@@ -100,6 +110,10 @@ def logout():
     
 @app.route('/search/', methods = ['GET', 'POST'])
 def search():
+    """ On the search page, users will initially see a list of all 
+    GoodTime users and all media. If no results found, renders a 
+    page to insert a new media to the database. Otherwise, displays
+    the search results as a list."""
     conn = dbi.connect()
     if request.method == 'GET':
         all_users = queries.getAllUsers(conn)
@@ -109,9 +123,7 @@ def search():
     else:
         query = request.form['query']
         kind = request.form['kind']
-
-        # do search and store search results
-        search_results = queries.do_search(conn, query, kind)
+        search_results = queries.do_search(conn, query, kind) # store search results
 
         if len(search_results) == 0:
             return redirect(url_for('insert'))
@@ -159,10 +171,10 @@ def createCollection():
 @app.route('/collection/<cID>', methods = ["GET", "POST"])
 def collectionPage(cID): # collection detail page, includes all media in that collection
     conn = dbi.connect()
+    collectionName = queries.getCollectionName(conn, cID)
     mediaCollection = queries.getMediaInCollection(conn, cID)
 
     if request.method == "POST":
-    
         if request.form['submit'] == 'back to user page':
             return redirect(url_for('user', username=session['username']))
 
@@ -173,24 +185,26 @@ def collectionPage(cID): # collection detail page, includes all media in that co
             # updating the media in the collection
             mediaCollection = queries.getMediaInCollection(conn, cID)
 
-        return render_template('collectionPage.html', collectionID = cID, mediaInCollection = mediaCollection)
+        return render_template('collectionPage.html', 
+            collectionID = cID, collectionName=collectionName, mediaInCollection = mediaCollection)
     else:
-        return render_template('collectionPage.html', collectionID = cID, mediaInCollection = mediaCollection)
+        return render_template('collectionPage.html', 
+            collectionID = cID, collectionName=collectionName, mediaInCollection = mediaCollection)
 
-# will add uid to the end of url
 @app.route('/user/<username>', methods = ["GET", "POST"])
 def user(username):
+    """ Given a user's unique username, renders their user page with
+    all their collections displayed and options to manage their 
+    collections."""
     conn = dbi.connect()
-    # based on username, get UID
-    # edit userPage.html to include username as argument for url_for
     uid = session['uid']
     collections = queries.getAllCollections(conn, uid)
 
     if request.method == "POST":
-
         if request.form['submit'] == 'create collection':
             return redirect(url_for('createCollection'))
 
+        # Catherine's comment: Not sure if we need this with the boxes
         if request.form['submit'] == 'view':
             toView = request.form
             print(toView)
@@ -203,7 +217,6 @@ def user(username):
             collections = queries.getAllCollections(conn, uid)
 
         return render_template('userPage.html', username=username, collections=collections)
-
     else:
         return render_template('userPage.html', username=username, collections=collections)
 
@@ -226,14 +239,9 @@ def media_info(mediaID):
                 #mediaCollection = queries.getMediaInCollection(conn, cID)
                 return render_template('mediaPage.html', media= media_info)
         else:
-            return render_template('mediaPage.html',  
-                media= media_info, 
-                )
-
+            return render_template('mediaPage.html', media= media_info)
     else:
-        return render_template('mediaPage.html',  
-                media= media_info, 
-                )
+        return render_template('mediaPage.html', media= media_info)
                           
 @app.route('/update/<cID>', methods=['GET', 'POST'])
 def update(cID):
