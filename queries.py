@@ -54,6 +54,12 @@ def insertCollection(conn, result):
 #     curs.execute('select last_insert_id()')
 #     return curs.fetchone()
 
+def getCollectionName(conn, cID):
+    curs = dbi.dict_cursor(conn)
+    curs.execute('select name from collections where collectionID=%s', 
+        [cID])
+    return curs.fetchone()['name']
+
 def getMediaTitle(conn, mediaID):
     curs = dbi.dict_cursor(conn)
     curs.execute('select title from media where mediaID=%s',
@@ -63,7 +69,7 @@ def getMediaTitle(conn, mediaID):
 def get_media(conn, mediaID):
     curs = dbi.dict_cursor(conn)
     curs.execute('''select * from media where mediaID=%s''',
-        {mediaID})
+        [mediaID])
     return curs.fetchall()
 
 # gets all collections of user, given their uID (uID temp hard coded)
