@@ -43,3 +43,7 @@ values ('Audrey Liang', 'al118', '123');
 
 insert into user(name, username, password)
 values ('Catherine Wang', 'cw4', '123');
+
+insert into media(mediaID, title, releaseYear, pID)
+select null, title, release, director from wmdb.movie
+
