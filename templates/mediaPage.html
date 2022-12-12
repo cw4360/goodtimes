@@ -6,13 +6,16 @@
                 <p>{{media_info.title}} ({{media_info.type}}), released in {{media_info.releaseYear}}.</p>
             {% endfor %}
 
-            <form method = "post">
+            <form method = "post", action="{{ url_for('media_info', mediaID=mediaID, uID=uID)}}">
+                <br>
                 <label for="media-add">MediaID
-                    <input type="text" id="media-add" name="media-add">
+                    <input type="text" id="media-add" name="media-add" value="{{mediaID}}">
                 </label>
-                <label for="addMedia">Add Media to Collection
+                <label for="addMedia">Add Media to Collection:
                     <input type="text" id="collection-add" name="collection-add">
                 </label>
+
+
                 <label for="rating">Rating:
                     <input type="number" id="rating" name="rating" min="0" max="5">
                 </label>
@@ -23,7 +26,7 @@
                 <br>
                 <label for="mood">Mood:
                     <select name="mood" id="mood">
-                        <option value="">Choose One</option>
+                        <option value=""></option>
                         <option value="happy">Happy</option>
                         <option value="sad">Sad</option>
                         <option value="angry">Angry</option>
@@ -37,6 +40,7 @@
                         <option value="action">Action</option>
                         <option value="comedy">Comedy</option>
                         <option value="romance">Romance</option>
+                        <option value="horror">Horror</option>
                     </select>
                 </label>
                 <br>

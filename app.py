@@ -109,9 +109,12 @@ def search():
     else:
         query = request.form['query']
         kind = request.form['kind']
+        mood = request.form['mood']
+        genre = request.form['genre']
+        audience = request.form['audience']
 
         # do search and store search results
-        search_results = queries.do_search(conn, query, kind)
+        search_results = queries.do_search(conn, query, kind, mood, genre, audience)
 
         if len(search_results) == 0:
             return redirect(url_for('insert'))
@@ -126,6 +129,7 @@ def insert():
         return render_template('insert.html')
     else:
         conn = dbi.connect()
+        mediaID = request.form['media-add']
         media_title = request.form['media_title']
         media_release = request.form['media_release']
         media_type = request.form['media_type']
@@ -207,14 +211,16 @@ def user(username):
     else:
         return render_template('userPage.html', username=username, collections=collections)
 
-
 @app.route('/media_details/<int:mediaID>', methods = ["GET", "POST"])
 def media_info(mediaID):
     conn = dbi.connect()
+    # uID=session['uid']
     media_info = queries.get_media(conn, mediaID)
     if request.method == "POST":
         if request.form['submit'] == 'add media':
                 mediaID = request.form['media-add']
+                # uID=session['uid']
+                # collections=queries.getAllCollections(conn, uID)
                 cID = request.form['collection-add']
                 rating = request.form['rating']
                 review = request.form['review']
@@ -224,15 +230,15 @@ def media_info(mediaID):
                 queries.insertInCollection(conn, mediaID, cID, rating, review, moodTag, genreTag, audienceTag)
                 # updating the media in the collection
                 #mediaCollection = queries.getMediaInCollection(conn, cID)
-                return render_template('mediaPage.html', media= media_info)
+                return render_template('mediaPage.html', media_info= media_info)
         else:
             return render_template('mediaPage.html',  
-                media= media_info, 
+                media_info= media_info, mediaID=media['mediaID']
                 )
 
     else:
         return render_template('mediaPage.html',  
-                media= media_info, 
+                media_info= media_info, mediaID=mediaID
                 )
                           
 @app.route('/update/<cID>', methods=['GET', 'POST'])

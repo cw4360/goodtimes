@@ -1,13 +1,21 @@
 import cs304dbi as dbi
 
-def do_search(conn, query, kind):
+def do_search(conn, query, kind, mood, genre, audience):
     curs = dbi.dict_cursor(conn)
     if kind == "username": 
         curs.execute('select * from user where username like %s or name like %s', 
         ["%"+query+"%", "%"+query+"%"])
-    else: 
+    elif kind == "media" and mood == "" and genre == "" and audience == "": 
         curs.execute('select * from media where title like %s', 
         ["%"+query+"%"])
+    elif kind == "media" and mood != "" and genre == "" and audience == "":
+        curs.execute('select * from media inner join mediaInCollections on media.mediaID==mediaInCollections.mediaID where title like %s and mood==%s', 
+        ["%"+query+"%", "%"+mood+"%"])
+    else:
+        curs.execute('select * from media where title like %s', 
+        ["%"+query+"%"])
+        #select the mediaID rows from mediaInCollectiosn that corresponds to mood, genre and audience
+        #but we want the media from the media table give mediaID, only appear once
     return curs.fetchall()
 
 def insert_media(conn, media_title, media_release, media_type):
