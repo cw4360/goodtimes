@@ -32,7 +32,7 @@ def search():
     conn = dbi.connect()
     if request.method == 'GET':
         all_users = queries.getAllUsers(conn)
-        all_media = queries.getAllMedia(conn)
+        all_media = queries.getAllMediaAndCreator(conn)
         return render_template('search.html', 
             all_users=all_users, all_media=all_media)
     else:

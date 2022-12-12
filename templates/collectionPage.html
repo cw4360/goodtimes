@@ -13,6 +13,7 @@
             <th>Mood</th>
             <th>Genre</th>
             <th>Audience</th>
+            <th>Creator</th>
         </tr>
         {% for media in mediaInCollection %}
         <tr>
@@ -23,6 +24,7 @@
             <td>{{media.moodTag}}</td>
             <td>{{media.genreTag}}</td>
             <td>{{media.audienceTag}}</td>
+            <td>{{media.name}}</td>
         </tr>
         {% endfor %}
     </table>

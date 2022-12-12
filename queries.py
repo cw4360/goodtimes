@@ -30,6 +30,11 @@ def getAllMedia(conn):
     curs.execute('select * from media')
     return curs.fetchall()
 
+def getAllMediaAndCreator(conn):
+    curs = dbi.dict_cursor(conn)
+    curs.execute('select mediaID, title, releaseYear, type, media.pID, name from media inner join creator on media.pID = creator.pID')
+    return curs.fetchall()
+
 # inserts data for new collection into collections table and returns new ID
 def insertCollection(conn, result):
     curs = dbi.dict_cursor(conn)
@@ -52,6 +57,12 @@ def getMediaTitle(conn, mediaID):
         [mediaID])
     return curs.fetchone()
 
+def getCreator(conn, pID): # perhaps delete if never used
+    curs = dbi.dict_cursor(conn)
+    curs.execute('select name from creator where pID=%s',
+        [pID])
+    return curs.fetchone()
+
 def get_media(conn, mediaID):
     curs = dbi.dict_cursor(conn)
     curs.execute('''select * from media where mediaID=%s''',
@@ -68,8 +79,8 @@ def getAllCollections(conn, tempUID):
 #gets all the media within a specified collection
 def getMediaInCollection(conn, cID):
     curs = dbi.dict_cursor(conn)
-    curs.execute('''select * from media inner join mediaInCollections 
-        using (mediaID) where collectionID = %s''',
+    curs.execute('''select * from (media inner join mediaInCollections using (mediaID) where collectionID = %s) 
+        inner join creator on mediaCollection.pID = creator.pID''',
         [cID])
     return curs.fetchall()
 
