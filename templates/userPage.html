@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+    <h1>{{username}}'s Profile</h1>
     <p>Here is a list of all collections:</p>  
     <article>
         <ol>
@@ -9,14 +10,14 @@
                 <a href="{{ url_for('collectionPage', cID=collection.collectionID)}}">{{collection.name}} (with ID: {{collection.collectionID}})</a>
             </li>
             {% endfor %}
-            {% for user in search_results %}
+            <!-- {% for user in search_results %}
                 <li>{{user.name}} ({{user.username}})</li>
-            {% endfor %}
+            {% endfor %} -->
         </ol>
     </article> 
 
-    <form method = "post" action = "{{url_for('userPage')}}">
-        <label for="viewForm">View Collection (temporarily hardcoded to uID 1-> rik):</label>
+    <form method = "post" action = "{{url_for('user', username=username)}}">
+        <label for="viewForm">View Collection:</label>
         <select name = "collectionID" id="viewForm">
             {% for collection in collections%}
             <option id="collectionID" name="collectionID" value="{{collection.collectionID}}">{{collection.name}}</option>
@@ -25,8 +26,8 @@
         <input type="submit" name="submit" value="view">
     </form>
     <p></p>
-    <form method = "post" action = "{{url_for('userPage')}}">
-        <label for="deleteForm">Collections to Delete (temporarily hardcoded to uID 1-> rik):</label>
+    <form method = "post" action = "{{url_for('user', username=username)}}">
+        <label for="deleteForm">Collections to Delete:</label>
         <select name = "collectionID" id="deleteForm">
             {% for collection in collections%}
             <option id="collectionID" name="collectionID" value="{{collection.collectionID}}">{{collection.name}}</option>

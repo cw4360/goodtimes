@@ -5,8 +5,8 @@ app = Flask(__name__)
 
 import cs304dbi as dbi
 import random
-import queries
 import bcrypt
+import queries
 
 app.secret_key = 'your secret here' # replace that with a random key
 app.secret_key = ''.join([ random.choice(('ABCDEFGHIJKLMNOPQRSTUVXYZ' +
@@ -32,9 +32,9 @@ def join():
         return redirect(url_for('index'))
     hashed = bcrypt.hashpw(passwd1.encode('utf-8'), bcrypt.gensalt())
     stored = hashed.decode('utf-8')
-    print(passwd1, type(passwd1), hashed, stored)
+    print("password:", passwd1, type(passwd1), hashed, stored)
     conn = dbi.connect()
-    curs.dbi.cursor(conn)
+    curs = dbi.cursor(conn)
     try:
         curs.execute('''insert into user(uid,username,hashed)
             values(null,%s,%s)''', [username, stored])
@@ -61,7 +61,42 @@ def login():
     curs.execute('''select uid,hashed from user
                     where username = %s''', [username])
     row = curs.fetchone()
-    ### Catherine: Left off here. Finish adding code from CS304: Logins
+    if row is None:
+        # same response as wrong password, so no information
+        # about what went wrong
+        flash('Login incorrect. Try again or create account')
+        return redirect(url_for('index'))
+    stored = row['hashed']
+    print('database has stored: {} {}'.format(stored,type(stored)))
+    print('form supplied passwd: {} {}'.format(passwd,type(passwd)))
+    hashed2 = bcrypt.hashpw(passwd.encode('utf-8'),
+                            stored.encode('utf-8'))
+    hashed2_str = hashed2.decode('utf-8')
+    print('rehash is: {} {}'.format(hashed2_str,type(hashed2_str)))
+    if hashed2_str == stored:
+        print('Password matches!')
+        flash('Successfully logged in as '+username)
+        session['username'] = username
+        session['uid'] = row['uid']
+        session['logged_in'] = True
+        session['visits'] = 1
+        return redirect( url_for('user', username=username) )
+    else:
+        flash('Login incorrect. Try again or join')
+        return redirect( url_for('index'))
+
+@app.route('/logout/')
+def logout():
+    if 'username' in session:
+        username = session['username']
+        session.pop('username')
+        session.pop('uid')
+        session.pop('logged_in')
+        flash('You are logged out')
+        return redirect(url_for('index'))
+    else:
+        flash('You are not logged in. Please login or join.')
+        return redirect(url_for('index'))
     
 @app.route('/search/', methods = ['GET', 'POST'])
 def search():
@@ -129,7 +164,7 @@ def collectionPage(cID): # collection detail page, includes all media in that co
     if request.method == "POST":
     
         if request.form['submit'] == 'back to user page':
-            return redirect(url_for('userPage'))
+            return redirect(url_for('user', username=session['username']))
 
         if request.form['submit'] == 'delete media':
             toDelete = request.form
@@ -143,11 +178,13 @@ def collectionPage(cID): # collection detail page, includes all media in that co
         return render_template('collectionPage.html', collectionID = cID, mediaInCollection = mediaCollection)
 
 # will add uid to the end of url
-@app.route('/user/', methods = ["GET", "POST"])
-def userPage():
+@app.route('/user/<username>', methods = ["GET", "POST"])
+def user(username):
     conn = dbi.connect()
-    tempUID = 1
-    collections = queries.getAllCollections(conn, tempUID)
+    # based on username, get UID
+    # edit userPage.html to include username as argument for url_for
+    uid = session['uid']
+    collections = queries.getAllCollections(conn, uid)
 
     if request.method == "POST":
 
@@ -156,19 +193,19 @@ def userPage():
 
         if request.form['submit'] == 'view':
             toView = request.form
-            print (toView)
+            print(toView)
             return redirect(url_for('collectionPage', cID = toView['collectionID']))
 
         if request.form['submit'] == 'delete': #may need to update value to be more specific
             toDelete = request.form
             queries.deleteCollection(conn, toDelete)
             # this updates collections so the page rerenders correctly
-            collections = queries.getAllCollections(conn, tempUID)
+            collections = queries.getAllCollections(conn, uid)
 
-        return render_template('userPage.html', collections = collections)
+        return render_template('userPage.html', username=username, collections=collections)
 
     else:
-        return render_template('userPage.html', collections = collections)
+        return render_template('userPage.html', username=username, collections=collections)
 
 
 @app.route('/media_details/<int:mediaID>', methods = ["GET", "POST"])
