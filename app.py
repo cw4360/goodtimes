@@ -197,7 +197,13 @@ def collectionPage(cID): # collection detail page, includes all media in that co
             toDelete = request.form
             print (toDelete)
             queries.deleteMediaFromCollection(conn, cID, toDelete)
-            # updating the media in the collection
+            # updating the media collection after deleting
+            mediaCollection = queries.getMediaCreatorInCollection(conn, cID)
+
+        if request.form['submit'] == 'update media':
+            toUpdate = request.form
+            print(toUpdate)
+            queries.updateMediaFromCollection(conn, cID, toUpdate)
             mediaCollection = queries.getMediaCreatorInCollection(conn, cID)
 
         return render_template('collectionPage.html', 
@@ -259,7 +265,6 @@ def media_info(mediaID):
             return render_template('mediaPage.html',  
                 media_info= media_info, mediaID=media['mediaID']
                 )
-
     else:
         return render_template('mediaPage.html',  
                 media_info= media_info, mediaID=mediaID
