@@ -6,7 +6,7 @@
             <p>{{media.title}} ({{media.type}}), released in {{media.releaseYear}}.</p>
         {% endfor %}
 
-            <form method = "post", action="{{ url_for('media_info', mediaID=mediaID, uID=uID)}}">
+            <form method = "post", action="{{ url_for('media_info', mediaID=mediaID)}}">
                 <br>
                 <label for="media-add">MediaID
                     <input type="text" id="media-add" name="media-add" value="{{mediaID}}">

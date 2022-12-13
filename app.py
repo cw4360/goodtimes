@@ -254,7 +254,7 @@ def media_info(mediaID):
                 queries.insertInCollection(conn, mediaID, cID, rating, review, moodTag, genreTag, audienceTag)
                 # updating the media in the collection
                 #mediaCollection = queries.getMediaInCollection(conn, cID)
-                return render_template('mediaPage.html', media_info= media_info)
+                return render_template('mediaPage.html', media_info= media_info, mediaID=mediaID)
         else:
             return render_template('mediaPage.html',  
                 media_info= media_info, mediaID=media['mediaID']
