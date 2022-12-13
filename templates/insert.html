@@ -16,6 +16,15 @@
             <input id="media_type" type="text" name="media_type">
         </label>
         <br>
+        <label for="media_creator">Media Creator:
+            <select name="media_creator" id="media_creator">
+                <option value="other">Other</option>
+                {% for creator in allCreators%}
+                    <option value="{{creator.pID}}">{{creator.name}}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <br>
         <br>
         <input class="button" type="submit" value="Insert Movie">
     </form>

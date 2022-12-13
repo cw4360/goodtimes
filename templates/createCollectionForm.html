@@ -1,17 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
+    <h1>Create a new collection here:</h1>
     <form method="post" action="{{url_for('createCollection')}}">
         <label for="collectionName">Collection Name:
             <input id="collectionName" name="collectionName" type="text" required>
         </label>
-    
-        <label for="userID">User ID:
-            <input id="userID" name="userID" type="text" required>
-        </label>
             
-        <p> 
-            <input type="submit" value="Create Collection">
-        </p>
+        <input type="submit" value="Create">
+
     </form>    
 {% endblock %}

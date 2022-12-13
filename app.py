@@ -139,23 +139,27 @@ def search():
 @app.route('/insert/', methods=["GET", "POST"])
 def insert():
     #renders the insert media form if media doesn't exist
+    conn = dbi.connect()
+    creators = queries.getAllCreators(conn);
+
     if request.method == "GET":
-        return render_template('insert.html')
+        return render_template('insert.html', allCreators=creators)
     else:
-        conn = dbi.connect()
-        mediaID = request.form['media-add']
+        #conn = dbi.connect()
+        #mediaID = request.form['media-add']
         media_title = request.form['media_title']
         media_release = request.form['media_release']
         media_type = request.form['media_type']
+        media_pID = request.form['media_creator']
 
          # detect incomplete form
-        if media_title == "" or media_release == "" or media_type == "":
+        if media_title == "" or media_release == "" or media_type == "" or media_pID =="":
             return render_template('insert.html', msg="Form is not complete, fill in missing info")
 
         # if media id doesn't exist
         else:
             # insert the media
-            queries.insert_media(conn, media_title, media_release, media_type)
+            queries.insert_media(conn, media_title, media_release, media_type, media_pID)
             flash('Media successfully inserted!')
             return render_template('insert.html', media_title=media_title, media_release=media_release, media_type=media_type)
 
@@ -168,7 +172,7 @@ def createCollection():
         return render_template('createCollectionForm.html')
 
     else:
-        newID = queries.insertCollection(conn, formInput)
+        newID = queries.insertCollection(conn, formInput, session['uid'])
         # newID = queries.getLatestId(conn)
         # redirects to collection detail page, will be updated with correct url_for()
         return redirect(url_for('collectionPage', cID=newID['last_insert_id()']))
@@ -178,7 +182,7 @@ def createCollection():
 def collectionPage(cID): # collection detail page, includes all media in that collection
     conn = dbi.connect()
     collectionName = queries.getCollectionName(conn, cID)
-    mediaCollection = queries.getMediaInCollection(conn, cID)
+    mediaCollection = queries.getMediaCreatorInCollection(conn, cID)
 
     if request.method == "POST":
         if request.form['submit'] == 'back to user page':
@@ -189,7 +193,7 @@ def collectionPage(cID): # collection detail page, includes all media in that co
             print (toDelete)
             queries.deleteMediaFromCollection(conn, cID, toDelete)
             # updating the media in the collection
-            mediaCollection = queries.getMediaInCollection(conn, cID)
+            mediaCollection = queries.getMediaCreatorInCollection(conn, cID)
 
         return render_template('collectionPage.html', 
             collectionID = cID, collectionName=collectionName, mediaInCollection = mediaCollection)

@@ -18,12 +18,12 @@ def do_search(conn, query, kind, mood, genre, audience):
         #but we want the media from the media table give mediaID, only appear once
     return curs.fetchall()
 
-def insert_media(conn, media_title, media_release, media_type):
+def insert_media(conn, media_title, media_release, media_type, media_pID):
    '''Given media data, inserts media into database'''
    curs = dbi.dict_cursor(conn)
-   curs.execute('''insert into media(title,releaseYear,type)
-                values (%s, %s, %s)''', 
-                [media_title, media_release, media_type])
+   curs.execute('''insert into media(title,releaseYear,type, pID)
+                values (%s, %s, %s, %s)''', 
+                [media_title, media_release, media_type, media_pID])
    conn.commit()
 
 # gets all users in the database
@@ -44,11 +44,11 @@ def getAllMediaAndCreator(conn):
     return curs.fetchall()
 
 # inserts data for new collection into collections table and returns new ID
-def insertCollection(conn, result):
+def insertCollection(conn, result, uID):
     curs = dbi.dict_cursor(conn)
     # the uID situation is temporary rn, will be updated once users can create accounts
     curs.execute('insert into collections(name, uID) values (%s, %s)', 
-        [result['collectionName'], result['userID']])
+        [result['collectionName'], uID])
     conn.commit()
     curs.execute('select last_insert_id()')
     return curs.fetchone()
@@ -79,24 +79,37 @@ def getCreator(conn, pID): # perhaps delete if never used
 
 def get_media(conn, mediaID):
     curs = dbi.dict_cursor(conn)
-    curs.execute('''select * from media where mediaID=%s''',
+    curs.execute('''select * from media where mediaID=%s;''',
         [mediaID])
     return curs.fetchall()
 
-# gets all collections of user, given their uID (uID temp hard coded)
-def getAllCollections(conn, tempUID):
+
+def getAllCollections(conn, uID): #uID no longer hard coded
     curs = dbi.dict_cursor(conn)
     curs.execute('select * from collections where uID = %s;',
-        [tempUID])
+        [uID])
+    return curs.fetchall()
+
+def getAllCreators(conn):
+    curs = dbi.dict_cursor(conn)
+    curs.execute('select * from creator order by name;')
     return curs.fetchall()
 
 #gets all the media within a specified collection
 def getMediaInCollection(conn, cID):
     curs = dbi.dict_cursor(conn)
-    curs.execute('''select * from (media inner join mediaInCollections using (mediaID) where collectionID = %s) 
-        inner join creator on mediaCollection.pID = creator.pID''',
+    curs.execute('''select title, mediaID, rating, review, moodTag, genreTag, audienceTag from media inner join mediaInCollections 
+        using (mediaID) where collectionID = %s;''',
         [cID])
     return curs.fetchall()
+
+def getMediaCreatorInCollection(conn, cID):
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''select title, releaseYear, type, media.mediaID, rating, review, moodTag, genreTag, audienceTag, name, media.pID
+                from mediaInCollections join media on mediaInCollections.mediaID = media.mediaID
+                join creator on creator.pID = media.pID
+                where collectionID = %s;''', [cID])
+    return curs.fetchall();
 
 # deletes a collection, currently only available on user page (uID temp hard coded)
 def deleteCollection(conn, result):
