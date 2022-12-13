@@ -1,16 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
-            {% for media_info in media %}
-                <h1 class = "title">{{media_info.mediaID}}: {{media_info.title}}</h1>
+        {% for media in media_info %}
+            <h1 class = "title">{{media.mediaID}}: {{media.title}}</h1>
                 
-                <p>{{media_info.title}} ({{media_info.type}}), released in {{media_info.releaseYear}}.</p>
-            {% endfor %}
+            <p>{{media.title}} ({{media.type}}), released in {{media.releaseYear}}.</p>
+        {% endfor %}
 
             <form method = "post", action="{{ url_for('media_info', mediaID=mediaID, uID=uID)}}">
                 <br>
                 <label for="media-add">MediaID
                     <input type="text" id="media-add" name="media-add" value="{{mediaID}}">
                 </label>
+
                 <label for="addMedia">Add Media to Collection:
                     <input type="text" id="collection-add" name="collection-add">
                 </label>

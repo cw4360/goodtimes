@@ -130,8 +130,13 @@ def search():
         # do search and store search results
         search_results = queries.do_search(conn, query, kind, mood, genre, audience)
 
-        if len(search_results) == 0:
+        if len(search_results) == 0 and mood=="" and genre=="" and audience=="":
             return redirect(url_for('insert'))
+        elif len(search_results) == 0:
+            flash("No media matches these filter options")
+            return render_template("search_results.html", 
+                query=query, kind=kind, search_results=search_results, length=len(search_results))
+
         else:
             return render_template("search_results.html", 
                 query=query, kind=kind, search_results=search_results, length=len(search_results))
@@ -226,16 +231,16 @@ def user(username):
     else:
         return render_template('userPage.html', username=username, collections=collections)
 
-@app.route('/media_details/<int:mediaID>', methods = ["GET", "POST"])
+@app.route('/media_details/<int:mediaID>/', methods = ["GET", "POST"])
 def media_info(mediaID):
     conn = dbi.connect()
     # uID=session['uid']
     media_info = queries.get_media(conn, mediaID)
+    # collections=queries.getAllCollections(conn, uID)
     if request.method == "POST":
         if request.form['submit'] == 'add media':
                 mediaID = request.form['media-add']
                 # uID=session['uid']
-                # collections=queries.getAllCollections(conn, uID)
                 cID = request.form['collection-add']
                 rating = request.form['rating']
                 review = request.form['review']
