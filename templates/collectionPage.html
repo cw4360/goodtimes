@@ -7,28 +7,28 @@
     <table>
         <tr>
             <th>Title</th>
-            <th>Released</th>
             <th>Media Type</th>
+            <th>Released</th>
             <!--<th>Media ID</th>-->
-            <th>Rating</th>
-            <th>Review</th>
             <th>Mood</th>
             <th>Genre</th>
             <th>Audience</th>
             <th>Creator</th>
+            <th>Rating</th>
+            <th>Review</th>
         </tr>
         {% for media in mediaInCollection %}
         <tr>
             <td>{{media.title}}</td>
-            <td>{{media.releaseYear}}</td>
             <td>{{media.type}}</td>
+            <td>{{media.releaseYear}}</td>
             <!--<td>{{media.mediaID}}</td>-->
-            <td>{{media.rating}}</td>
-            <td>{{media.review}}</td>
             <td>{{media.moodTag}}</td>
             <td>{{media.genreTag}}</td>
             <td>{{media.audienceTag}}</td>
             <td>{{media.name}}</td>
+            <td>{{media.rating}}</td>
+            <td>{{media.review}}</td>
         </tr>
         {% endfor %}
     </table>
@@ -42,14 +42,6 @@
             <option value="{{media.mediaID}}">{{media.title}}</option>
             {% endfor %}
         </select>
-        <br>
-        <label for="rating">Rating:
-            <input type="number" id="rating" name="rating" min="0" max="5">
-        </label>
-        <br>
-        <label for="review">Review:
-            <input type="text" id="review" name="review">
-        </label>
         <br>
         <label for="mood">Mood:
             <select name="mood" id="mood">
@@ -78,6 +70,14 @@
                 <option value="children">Children</option>
                 <option value="friends">Friends</option>
             </select>
+        </label>
+        <br>
+        <label for="rating">Rating:
+            <input type="number" id="rating" name="rating" min="0" max="5">
+        </label>
+        <br>
+        <label for="review">Review:
+            <input type="text" id="review" name="review">
         </label>
         <br>
         <!--
