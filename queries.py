@@ -1,6 +1,7 @@
 import cs304dbi as dbi
 
 def do_search(conn, query, kind, mood, genre, audience):
+    """does a search on the media depending on the typed query, kind of search (media or user), as well as any mood, genre, or audience tags"""
     curs = dbi.dict_cursor(conn)
     if kind == "username": 
         curs.execute('''select * from user where username like %s or name like %s''', 

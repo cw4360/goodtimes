@@ -44,8 +44,11 @@ values ('Audrey Liang', 'al118', '123');
 insert into user(name, username, password)
 values ('Catherine Wang', 'cw4', '123');
 
+--populating creator table with directors from wmdb
 insert into creator(pID, name)
 select null, name from wmdb.person;
+
+--populating media table with movies from the wmdb
 insert into media(title, releaseYear)
 select title, `release` from wmdb.movie;
 update media set type = 'movie' where mediaID > 40;

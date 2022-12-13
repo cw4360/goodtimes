@@ -121,6 +121,7 @@ def search():
         return render_template('search.html', 
             all_users=all_users, all_media=all_media)
     else:
+        #gets responses from the form
         query = request.form['query']
         kind = request.form['kind']
         mood = request.form['mood']
@@ -129,29 +130,28 @@ def search():
 
         # do search and store search results
         search_results = queries.do_search(conn, query, kind, mood, genre, audience)
-
+        #if searched media does not exist
         if len(search_results) == 0 and mood=="" and genre=="" and audience=="":
             return redirect(url_for('insert'))
+        #if media does not match filter options
         elif len(search_results) == 0:
             flash("No media matches these filter options")
             return render_template("search_results.html", 
                 query=query, kind=kind, search_results=search_results, length=len(search_results))
-
+        #display results of search if exists
         else:
             return render_template("search_results.html", 
                 query=query, kind=kind, search_results=search_results, length=len(search_results))
 
 @app.route('/insert/', methods=["GET", "POST"])
 def insert():
-    #renders the insert media form if media doesn't exist
+    """If the media does not exist, this renders the form for inserting a new one"""
     conn = dbi.connect()
     creators = queries.getAllCreators(conn);
 
     if request.method == "GET":
         return render_template('insert.html', allCreators=creators)
     else:
-        #conn = dbi.connect()
-        #mediaID = request.form['media-add']
         media_title = request.form['media_title']
         media_release = request.form['media_release']
         media_type = request.form['media_type']
@@ -170,6 +170,7 @@ def insert():
 
 @app.route('/createCollection/', methods = ["GET", "POST"])
 def createCollection():
+    """creates a new collection"""
     conn = dbi.connect()
     formInput = request.form
 
@@ -184,7 +185,8 @@ def createCollection():
 
 
 @app.route('/collection/<cID>', methods = ["GET", "POST"])
-def collectionPage(cID): # collection detail page, includes all media in that collection
+def collectionPage(cID): 
+    """collection detail page, includes all media in that collection"""
     conn = dbi.connect()
     collectionName = queries.getCollectionName(conn, cID)
     mediaCollection = queries.getMediaCreatorInCollection(conn, cID)
@@ -192,7 +194,7 @@ def collectionPage(cID): # collection detail page, includes all media in that co
     if request.method == "POST":
         if request.form['submit'] == 'back to user page':
             return redirect(url_for('user', username=session['username']))
-
+        #deletes media from the given collection
         if request.form['submit'] == 'delete media':
             toDelete = request.form
             print (toDelete)
@@ -200,6 +202,7 @@ def collectionPage(cID): # collection detail page, includes all media in that co
             # updating the media collection after deleting
             mediaCollection = queries.getMediaCreatorInCollection(conn, cID)
 
+        #updates the media in the collection
         if request.form['submit'] == 'update media':
             toUpdate = request.form
             print(toUpdate)
@@ -243,6 +246,7 @@ def user(username):
 
 @app.route('/media_details/<int:mediaID>/', methods = ["GET", "POST"])
 def media_info(mediaID):
+    """page for details of the movie like release year and creator given the media ID"""
     conn = dbi.connect()
     # uID=session['uid']
     media_info = queries.get_media(conn, mediaID)
