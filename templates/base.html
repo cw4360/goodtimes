@@ -6,31 +6,34 @@
         {% block headstuff %}
         <title>{{title}}</title>
         {% endblock %}
+        <!-- download fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com"> 
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
         <link rel="stylesheet" type="text/css" 
               href="{{ url_for('static', filename='style.css') }}">
     </head>
 
-    <nav>
-        <a href="{{ url_for('user', username=session['username']) }}">My User Page</a>
-        <a href="{{ url_for('search') }}">Search Page</a> 
-        <a href="{{ url_for('createCollection') }}">Create a Collection</a> 
-        <a href="{{ url_for('collectionPage', cID=3) }}">Collection Page, ID 3</a>
-        <a href="{{ url_for('insert') }}">Insert New Media</a>
-        <a href="{{ url_for('logout') }}">Log Out</a>
-    </nav>
-
     <body>
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="flashMessages">
-                {% for error in messages %}
-                <p>{{error}}</p>
-                {% endfor %}
-            </div>
-        {% endif %}
-        {% endwith %}
+        <div style="position: relative; width: 100%;">
+            <img src="../static/images/header-gradient.svg">
+            <div class="content-block">
+                {% block nav %}
+                {% endblock %}
 
-        {% block content %}
-        {% endblock %}
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="flashMessages">
+                        {% for error in messages %}
+                        <p>{{error}}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% endwith %}
+
+                {% block content %}
+                {% endblock %}
+            </div>
+        </div>
     </body>
 </html>

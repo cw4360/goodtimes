@@ -1,42 +1,42 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="align-center">Welcome to GoodTimes!</h1>
+<h1 class="welcome retro">Welcome to GoodTimes!</h1>
+<div class="align-center"> 
+    <p style="padding: 0px 30px;">
+        Find and share multimedia recommendations with users all around the world. <br>
+        Keep track of all the shows, movies, songs, video games, and books you <br>
+        love and share your collections with others!
+    </p>
+</div>
 
-<div class="flex-row flex-center">
-    <div class="align-right">
-        <h2>Join</h2>
+<div class="flex-row flex-center" style="flex-wrap: wrap; column-gap: 30px;">
+    <div class="join-login align-center">
+        <h2 class="blue-grad">Join</h2>
         <form method="post" action="{{ url_for('join')}}">
-            <label for="username">Username:
-                <input id="username" type="text" name="username">
-            </label>
+            <input id="username" type="text" name="username" placeholder="Username">
             <br>
-            <label for="password1">Password:
-                <input id="password1" type="text" name="password1">
-            </label>
+            <input id="password1" type="text" name="password1" placeholder="Password">
             <br>
-            <label for="password2">Confirm password:
-                <input id="password2" type="text" name="password2">
-            </label>
+            <input id="password2" type="text" name="password2" placeholder="Confirm password">
             <br>
-            <input type="submit" value="Create account">
+            <input id="join-button" type="submit" value="Create account">
         </form>
     </div>
-    <div class="vertical-line"></div>
-    <div>
-        <h2>Login</h2>
+    <div class="join-login align-center">
+        <h2 class="teal-grad">Login</h2>
         <form method="post" action="{{ url_for('login')}}">
-            <label for="username">Username:
-                <input id="username" type="text" name="username">
-            </label>
+            <input id="username" type="text" name="username" placeholder="Username">
             <br>
-            <label for="password">Password:
-                <input id="password" type="text" name="password">
-            </label>
+            <input id="password" type="text" name="password" placeholder="Password">
             <br>
-            <input type="submit" value="Login">
+            <input id="login-button" type="submit" value="Login">
         </form>
     </div>
 </div>
 
+<p class="align-center">
+    CS304 Final Project, Fall 2022. <br>
+    Made with love by Audrey, Catherine and Rik
+</p>
 {% endblock %}

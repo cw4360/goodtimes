@@ -1,24 +1,37 @@
 {% extends "base.html" %}
 
+{% block nav %}
+<div class="nav">
+    <h3>GoodTimes</h3>
+    <a href="{{ url_for('search') }}">explore</a> 
+    <a href="{{ url_for('user', username=session['username']) }}">profile</a>
+    <a href="{{ url_for('logout') }}">logout</a>
+</div>
+<!-- <a href="{{ url_for('createCollection') }}">Create a Collection</a> 
+<a href="{{ url_for('collectionPage', cID=3) }}">Collection Page, ID 3</a>
+<a href="{{ url_for('insert') }}">Insert New Media</a> -->
+{% endblock %}
+
 {% block content %}
-    <h1>{{username}}'s Profile</h1>
-    <p>Here is a list of all collections:</p>  
+<div style="margin-left: 10%; margin-right: 10%;">
+    <div class="profile-card">
+        <div class="profile-id">
+            <h2>NAME</h2>
+            <p>@{{username}}</p>
+        </div>
+        <p class="profile-bio">asdlfkajsf</p>
+    </div>
+
+    <p class="my-collections">MY COLLECTIONS</p>  
     <div class="collection-container">
         {% for collection in collections %}
         <a href="{{ url_for('collectionPage', cID=collection.collectionID)}}">
             <div class="collection-box">
-                <p>{{collection.name}}</p>
-                <p>(with ID: {{collection.collectionID}})</p>
+                <div class="collection-photo"></div>
+                <p class="collection-title">{{collection.name}}</p>
             </div>
         </a>
         {% endfor %}
-        <!-- Create New Collection currently has no functionality -->
-        <a>
-            <div class="collection-box">
-                <p>Create New Collection</p>
-                <p>(+)</p>
-            </div>
-        </a>
     </div>
     <!-- {% for user in search_results %}
                 <li>{{user.name}} ({{user.username}})</li>
@@ -46,4 +59,5 @@
             <input type="submit" name="submit" value="create collection">
         </p>
     </form>
+</div>
 {% endblock %}
