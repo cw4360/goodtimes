@@ -4,10 +4,8 @@
 <div style="margin-left: 10%; margin-right: 10%;">
     <div class="profile-card">
         <div class="profile-id">
-            <h2>User's name goes here...</h2>
-            <p>@{{username}}</p>
+            <h2>[Name]'s Profile ({{username}})</h2>
         </div>
-        <p class="profile-bio">Description goes here...</p>
     </div>
     <form method = "post" action = "{{url_for('user', username=username)}}">
         <label for="createCollection">Create Collection:</label>

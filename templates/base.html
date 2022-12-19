@@ -15,7 +15,8 @@
     </head>
 
     <body>
-        <div style="position: relative; width: 100%;">
+        <!-- style="position: relative; width: 100%;" -->
+        <div>
             <img src="../static/images/header-gradient.svg">
             <div class="content-block">
                 {% block nav %}
@@ -35,5 +36,11 @@
                 {% endblock %}
             </div>
         </div>
+        <!-- <img style="position: relative" src="../static/images/footer-gradient.svg"> -->
     </body>
+    <footer>
+        {% block footer %}
+        {% endblock %}
+        <!-- <img src="../static/images/footer-gradient.svg"> -->
+    </footer>
 </html>
