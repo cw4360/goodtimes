@@ -1,9 +1,10 @@
-{% extends "base.html" %}
+{% extends "loggedIn.html" %}
 
 {% block content %}
     <h1>{{collectionName}}</h1>
 
     <p>Here is a list of all media in this collection:</p>   
+    <hr>
     <table>
         <tr>
             <th>Title</th>
@@ -32,66 +33,66 @@
         </tr>
         {% endfor %}
     </table>
-
     <hr>
-    <!-- Update Media -->
-    <form method = "post" action = "{{url_for('collectionPage', cID = collectionID)}}">
-        <label for="updateMedia">Media to Update:</label>
-        <select name = "mediaID" id="updateMedia">
-            {% for media in mediaInCollection%}
-            <option value="{{media.mediaID}}">{{media.title}}</option>
-            {% endfor %}
-        </select>
-        <br>
-        <label for="mood">Mood:
-            <select name="mood" id="mood">
-                <option value="">Choose One</option>
-                <option value="happy">Happy</option>
-                <option value="sad">Sad</option>
-                <option value="angry">Angry</option>
-                <option value="calm">Calm</option>
-            </select>
-        </label>
-        <br>
-        <label for="genre">Genre:
-            <select name="genre" id="genre">
-                <option value="">Choose One</option>
-                <option value="action">Action</option>
-                <option value="comedy">Comedy</option>
-                <option value="romance">Romance</option>
-            </select>
-        </label>
-        <br>
-        <label for="audience">Audience:
-            <select name="audience" id="genre">
-                <option value="">Choose One</option>
-                <option value="family">Family</option>
-                <option value="significant other">Significant Other</option>
-                <option value="children">Children</option>
-                <option value="friends">Friends</option>
-            </select>
-        </label>
-        <br>
-        <label for="rating">Rating:
-            <input type="number" id="rating" name="rating" min="0" max="5">
-        </label>
-        <br>
-        <label for="review">Review:
-            <input type="text" id="review" name="review">
-        </label>
-        <br>
-        <!--
-        <label for="creator">Creator:
-            <select name="creator" id="creator">
+    <div> <!-- Update Media -->
+        <form method = "post" action = "{{url_for('collectionPage', cID = collectionID)}}">
+            <label for="updateMedia">Media to Update:</label>
+            <select name = "mediaID" id="updateMedia">
                 {% for media in mediaInCollection%}
-                <option value="{{media.name}}">{{media.name}}</option>
+                <option value="{{media.mediaID}}">{{media.title}}</option>
                 {% endfor %}
-                <option value="other">Other</option>
             </select>
-        </label>
-        -->
-        <p><input type="submit" name="submit" value="update media"></p>
-    </form>
+            <br>
+            <label for="mood">Mood:
+                <select name="mood" id="mood">
+                    <option value="">Choose One</option>
+                    <option value="happy">Happy</option>
+                    <option value="sad">Sad</option>
+                    <option value="angry">Angry</option>
+                    <option value="calm">Calm</option>
+                </select>
+            </label>
+            <br>
+            <label for="genre">Genre:
+                <select name="genre" id="genre">
+                    <option value="">Choose One</option>
+                    <option value="action">Action</option>
+                    <option value="comedy">Comedy</option>
+                    <option value="romance">Romance</option>
+                </select>
+            </label>
+            <br>
+            <label for="audience">Audience:
+                <select name="audience" id="genre">
+                    <option value="">Choose One</option>
+                    <option value="family">Family</option>
+                    <option value="significant other">Significant Other</option>
+                    <option value="children">Children</option>
+                    <option value="friends">Friends</option>
+                </select>
+            </label>
+            <br>
+            <label for="rating">Rating:
+                <input type="number" id="rating" name="rating" min="0" max="5">
+            </label>
+            <br>
+            <label for="review">Review:
+                <input type="text" id="review" name="review">
+            </label>
+            <br>
+            <!--
+            <label for="creator">Creator:
+                <select name="creator" id="creator">
+                    {% for media in mediaInCollection%}
+                    <option value="{{media.name}}">{{media.name}}</option>
+                    {% endfor %}
+                    <option value="other">Other</option>
+                </select>
+            </label>
+            -->
+            <p><input type="submit" name="submit" value="update media"></p>
+        </form>
+    </div>
 
     <!-- Delete Media -->
     <form method = "post" action = "{{url_for('collectionPage', cID = collectionID)}}">

@@ -1,7 +1,6 @@
+{% extends "loggedIn.html" %}
 
-{% extends "base.html" %}
 {% block content%}
-
     <h1>Update Ratings, Reviews, and Tags</h1>
     <form method="post" action="{{ url_for('update', mediaID=mediaID) }}">
         <label for="media_rating">Title:

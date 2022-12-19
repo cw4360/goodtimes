@@ -1,4 +1,5 @@
-{% extends "base.html" %}
+{% extends "loggedIn.html" %}
+
 {% block content %}
         {% for media in media_info %}
             <h1 class = "title">{{media.mediaID}}: {{media.title}}</h1>

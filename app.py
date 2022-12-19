@@ -28,8 +28,9 @@ def index():
 
 @app.route('/join/', methods=['POST'])
 def join():
-    """ Given a username and a confirmed password, adds new user to
-    GoodTimes user table in database. Then logs user in. """
+    """ Given a name, username, and a confirmed password, adds new user to
+    GoodTimes user table in database. Then logs user in."""
+    name = request.form.get('name')
     username = request.form.get('username')
     passwd1 = request.form.get('password1')
     passwd2 = request.form.get('password2')
@@ -42,8 +43,8 @@ def join():
     conn = dbi.connect()
     curs = dbi.cursor(conn)
     try:
-        curs.execute('''insert into user(uid,username,hashed)
-            values(null,%s,%s)''', [username, stored])
+        curs.execute('''insert into user(uid,name,username,hashed)
+            values(null,%s,%s,%s)''', [name, username, stored])
         conn.commit()
     except Exception as err:
         flash('The username is taken: {}'.format(repr(err)))
@@ -228,7 +229,6 @@ def user(username):
         if request.form['submit'] == 'create collection':
             return redirect(url_for('createCollection'))
 
-        # Catherine's comment: Not sure if we need this with the boxes
         if request.form['submit'] == 'view':
             toView = request.form
             print(toView)

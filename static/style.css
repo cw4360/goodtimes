@@ -113,7 +113,7 @@ a {
 
 .join-login ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
     color: rgba(114, 120, 136, 0.6);
-  }
+}
 
 #join-button {
     background: linear-gradient(73.19deg, #DC79FF 0%, #256BFA 95.06%);
@@ -125,6 +125,10 @@ a {
     background: linear-gradient(90deg, #1584EB 0%, #24D6D9 97.34%);
     border-radius: 24px;
     border: none;
+}
+
+.join-login input[type=submit]:hover {
+    cursor:pointer
 }
 
 .flex-row {
