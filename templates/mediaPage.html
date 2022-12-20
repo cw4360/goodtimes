@@ -1,58 +1,81 @@
 {% extends "loggedIn.html" %}
 
 {% block content %}
-<div>
-    <h1>{{media_info.mediaID}}: {{media_info.title}}</h1>
-    <h3>{{media_info.title}} ({{media_info.type}}), released in {{media_info.releaseYear}}.</h3>
+<h1>{{media_info.mediaID}}: {{media_info.title}}</h1>
+<h3>{{media_info.title}} ({{media_info.type}}), released in {{media_info.releaseYear}}.</h3>
 
-    <form method = "post", action="{{ url_for('media_info', mediaID=mediaID)}}">
-        <label for="media-add">MediaID
-            <input type="text" id="media-add" name="media-add" value="{{mediaID}}">
-        </label>
-        <br>
-        <label for="addMedia">Add Media to Collection:
-            <input type="text" id="collection-add" name="collection-add">
-        </label>
-        <br>
-        <label for="rating">Rating:
-            <input type="number" id="rating" name="rating" min="0" max="5">
-        </label>
-        <br>
-        <label for="review">Review:
-            <input type="text" id="review" name="review">
-        </label>
-        <br>
-        <label for="mood">Mood:
-            <select name="mood" id="mood">
-                <option value=""></option>
-                <option value="happy">Happy</option>
-                <option value="sad">Sad</option>
-                <option value="angry">Angry</option>
-                <option value="calm">Calm</option>
-            </select>
-        </label>
-        <br>
-        <label for="genre">Genre:
-            <select name="genre" id="genre">
-                <option value=""></option>
-                <option value="action">Action</option>
-                <option value="comedy">Comedy</option>
-                <option value="romance">Romance</option>
-                <option value="horror">Horror</option>
-            </select>
-        </label>
-        <br>
-        <label for="audience">Audience:
-            <select name="audience" id="audience">
-                <option value=""></option>
-                <option value="family">Family</option>
-                <option value="significant other">Significant Other</option>
-                <option value="children">Children</option>
-                <option value="friends">Friends</option>
-            </select>
-        </label>
-        <input type="submit" name="submit" value="add media">
-    </form>
+<form method = "post", action="{{ url_for('media_info', mediaID=mediaID)}}">
+    <br>
+    <label for="media-add">MediaID
+        <input type="text" id="media-add" name="media-add" value="{{mediaID}}">
+    </label>
 
-</div>
+    <label for="addMedia">Add Media to Collection:
+        <select name="addMedia" id="addMedia">
+            <option value="other"></option>
+            {% for collection in collections%}
+                <option value="{{collection.collectionID}}">{{collection.name}}</option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label for="rating">Rating:
+        <input type="number" id="rating" name="rating" min="0" max="5">
+    </label>
+    <br>
+    <label for="review">Review:
+        <input type="text" id="review" name="review">
+    </label>
+    <br>
+    <label for="mood">Mood:
+        <select name="mood" id="mood">
+            <option value=""></option>
+            <option value="happy">Happy</option>
+            <option value="sad">Sad</option>
+            <option value="angry">Angry</option>
+            <option value="calm">Calm</option>
+        </select>
+    </label>
+    <br>
+    <label for="genre">Genre:
+        <select name="genre" id="genre">
+            <option value=""></option>
+            <option value="action">Action</option>
+            <option value="comedy">Comedy</option>
+            <option value="romance">Romance</option>
+            <option value="horror">Horror</option>
+        </select>
+    </label>
+    <br>
+    <label for="audience">Audience:
+        <select name="audience" id="audience">
+            <option value=""></option>
+            <option value="family">Family</option>
+            <option value="significant other">Significant Other</option>
+            <option value="children">Children</option>
+            <option value="friends">Friends</option>
+        </select>
+    </label>
+    <input type="submit" name="submit" value="add media">
+</form>
+<br>
+<br>
+<p>See what other users thought:</p>
+<table id="details">
+    <tr>
+        <th>Rating</th>
+        <th>Review</th>
+        <th>Mood</th>
+        <th>Genre</th>
+        <th>Audience</th>
+    </tr>
+    {% for details in rated %}
+    <tr data-tt={{details.mediaID}}>
+        <td class="rating">{{details.rating}}</td>
+        <td class="review">{{details.review}}</td>
+        <td class="moodtag">{{details.moodTag}}</td>
+    </tr>
+    {% endfor %}
+</table>
+            
 {% endblock %}

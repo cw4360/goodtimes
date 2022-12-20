@@ -204,3 +204,9 @@ def insertInCollection (conn, mediaID, cID, rating, review, moodTag, genreTag, a
         values (%s, %s, %s, %s, %s, %s, %s)''',
         [mediaID, cID, rating, review, moodTag, genreTag, audienceTag])
     conn.commit()
+
+def getRatedMedia(conn, mediaID):
+    """get all rated media, ratings, reviews, tags given mediaID"""
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''select * from mediaInCollections where mediaID=%s''', [mediaID])
+    return curs.fetchall()
