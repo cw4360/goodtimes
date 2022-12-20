@@ -1,40 +1,6 @@
-{% extends "loggedIn.html" %}
+{% extends "explore.html" %}
 
 {% block content %}
-<div class="searchbar" style="margin-top: 20px;">
-    <form method="post" action="{{ url_for('search') }}"> 
-        <input id="query" name="query" type="text" placeholder="Search for a user or media..." required>
-        <select id="mood" name="mood">
-            <option value="">Filter mood</option>
-            <option value="happy">happy</option>
-            <option value="sad">sad</option>     
-            <option value="angry">angry</option>  
-            <option value="calm">calm</option>             
-        </select>
-        <select id="genre" name="genre">
-            <option value="">Filter genre</option>
-            <option value="action">action</option>
-            <option value="comedy">comedy</option>     
-            <option value="romance">romance</option>  
-            <option value="horror">horror</option>             
-        </select>
-        <select id="audience" name="audience">
-            <option value="">Filter audience</option>
-            <option value="family">family</option>
-            <option value="significant other">significant other</option>     
-            <option value="children">children</option>  
-            <option value="friends">friends</option>             
-        </select>
-        <select id="kind" name="kind" required>
-            <option value="">Select type*</option>
-            <option value="username">username</option>
-            <option value="media">media type</option>                
-        </select>
-        <input id="search-button" type="submit" value="Search">
-        <br>
-    </form> 
-</div>
-
 <h2 class="description"> Explore all users:</h2>
 <div class="user-container">
     {% for user in all_users %}

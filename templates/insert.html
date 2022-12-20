@@ -1,4 +1,4 @@
-{% extends "loggedIn.html" %}
+{% extends "explore.html" %}
 
 {% block content%}
     <h1>Insert Media</h1>
@@ -23,7 +23,7 @@
         <br>
         <label for="media_creator">Media Creator:
             <select name="media_creator" id="media_creator">
-                <option value="other">Other</option>
+                <option value="N/A">N/A</option>
                 {% for creator in allCreators%}
                     <option value="{{creator.pID}}">{{creator.name}}</option>
                 {% endfor %}

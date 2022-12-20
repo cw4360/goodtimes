@@ -242,6 +242,8 @@ def search():
             mood = request.form['mood']
             genre = request.form['genre']
             audience = request.form['audience']
+            # Catherine: print mood, audience, and genre if specified
+            print("mood, audience, genre:", mood, audience, genre)
 
             # do search and store search results
             search_results = queries.do_search(conn, query, kind, mood, genre, audience)
@@ -252,11 +254,13 @@ def search():
             elif len(search_results) == 0:
                 flash("No media matches these filter options")
                 return render_template("search_results.html", 
-                    query=query, kind=kind, search_results=search_results, length=len(search_results))
+                    query=query, kind=kind, mood=mood, genre=genre, audience=audience,
+                    search_results=search_results, length=len(search_results))
             #display results of search if exists
             else:
                 return render_template("search_results.html", 
-                    query=query, kind=kind, search_results=search_results, length=len(search_results))
+                    query=query, kind=kind, mood=mood, genre=genre, audience=audience,
+                    search_results=search_results, length=len(search_results))
 
 @app.route('/insert/', methods=["GET", "POST"])
 def insert():
@@ -281,6 +285,9 @@ def insert():
                 return render_template('insert.html', msg="Form is not complete, fill in missing info")
             # if media id doesn't exist
             else:
+                # if no media creator was selected, change value to NULL
+                if media_pID == 'N/A':
+                    media_pID = None
                 # insert the media
                 queries.insert_media(conn, media_title, media_release, media_type, media_pID)
                 flash('Media successfully inserted!')
