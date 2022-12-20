@@ -64,7 +64,9 @@ def getAllMedia(conn):
 def getAllMediaAndCreator(conn):
     '''returns mediaID< title, releaseYear, type, pID, and name of all media associated with a creator'''
     curs = dbi.dict_cursor(conn)
-    curs.execute('select mediaID, title, releaseYear, type, media.pID, name from media inner join creator on media.pID = creator.pID')
+    curs.execute('''select mediaID, title, releaseYear, type, media.pID, name 
+                    from media inner join creator on media.pID = creator.pID
+                    order by title''')
     return curs.fetchall()
 
 # inserts data for new collection into collections table and returns new ID
@@ -110,8 +112,30 @@ def get_media(conn, mediaID):
     curs = dbi.dict_cursor(conn)
     curs.execute('''select * from media where mediaID=%s;''',
         [mediaID])
-    return curs.fetchall()
+    return curs.fetchone()
 
+def updateName(conn, uid, name):
+    '''given a user's uid and their new desired name, updates the user's name'''
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''update user set name=%s where uid=%s''',
+        [name, uid])
+    conn.commit()
+
+def getUserInfo(conn, username):
+    '''given a user's username, returns the user's name, username, and uid'''
+    curs = dbi.dict_cursor(conn)
+    curs.execute('select name, username, uid from user where username = %s;',
+        [username])
+    return curs.fetchone()
+
+def getAllCollections1(conn, username):
+    '''given a user's username, returns all collections (collectionID, name, uID) made by that user'''
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''select collections.name as name, collectionID 
+        from collections inner join user using (uid) 
+        where username = %s;''',
+        [username])
+    return curs.fetchall()
 
 def getAllCollections(conn, uID): #uID no longer hard coded
     '''given a uID, returns all collections (collectionID, name, uID) made by that user'''

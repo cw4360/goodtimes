@@ -90,6 +90,7 @@ def login():
         session['uid'] = row['uid']
         session['logged_in'] = True
         session['visits'] = 1
+        print('session:', session)
         return redirect( url_for('user', username=username) )
     else:
         flash('Login incorrect. Try again or join')
@@ -116,6 +117,7 @@ def search():
     page to insert a new media to the database. Otherwise, displays
     the search results as a list."""
     conn = dbi.connect()
+    print("session:", session)
     if request.method == 'GET':
         all_users = queries.getAllUsers(conn)
         all_media = queries.getAllMediaAndCreator(conn)
@@ -174,10 +176,8 @@ def createCollection():
     """creates a new collection"""
     conn = dbi.connect()
     formInput = request.form
-
     if request.method == "GET":
         return render_template('createCollectionForm.html')
-
     else:
         newID = queries.insertCollection(conn, formInput, session['uid'])
         # newID = queries.getLatestId(conn)
@@ -222,57 +222,66 @@ def user(username):
     all their collections displayed and options to manage their 
     collections."""
     conn = dbi.connect()
-    uid = session['uid']
-    collections = queries.getAllCollections(conn, uid)
+    print("session:", session)
+    uid = session['uid'] ## get current user's UID
+    userInfo = queries.getUserInfo(conn, username)
+    collections = queries.getAllCollections1(conn, username)
 
-    if request.method == "POST":
-        if request.form['submit'] == 'create collection':
-            return redirect(url_for('createCollection'))
+    if uid != userInfo['uid']: ## user is viewing another user's profile
+        return render_template('userPage.html', isUser=False, userInfo=userInfo, collections=collections)
+    else: ## user is viewing their own profile, and has access to manage profile and collections
+        if request.method == "POST":
+            if request.form['submit'] == 'update name':
+                queries.updateName(conn, uid, request.form['name'])
+                userInfo = queries.getUserInfo(conn, username)
 
-        if request.form['submit'] == 'view':
-            toView = request.form
-            print(toView)
-            return redirect(url_for('collectionPage', cID = toView['collectionID']))
+            if request.form['submit'] == 'create collection':
+                return redirect(url_for('createCollection'))
 
-        if request.form['submit'] == 'delete': #may need to update value to be more specific
-            toDelete = request.form
-            queries.deleteCollection(conn, toDelete)
-            # this updates collections so the page rerenders correctly
-            collections = queries.getAllCollections(conn, uid)
+            if request.form['submit'] == 'view':
+                toView = request.form
+                print(toView)
+                return redirect(url_for('collectionPage', cID = toView['collectionID']))
 
-        return render_template('userPage.html', username=username, collections=collections)
-    else:
-        return render_template('userPage.html', username=username, collections=collections)
+            if request.form['submit'] == 'delete': #may need to update value to be more specific
+                toDelete = request.form
+                queries.deleteCollection(conn, toDelete)
+                # this updates collections so the page rerenders correctly
+                collections = queries.getAllCollections(conn, uid)
 
-@app.route('/media_details/<int:mediaID>/', methods = ["GET", "POST"])
+            return render_template('userPage.html', isUser=True, userInfo=userInfo, collections=collections)
+        else:
+            return render_template('userPage.html', isUser=True, userInfo=userInfo, collections=collections)
+
+@app.route('/media_details/<mediaID>', methods = ["GET", "POST"])
 def media_info(mediaID):
     """page for details of the movie like release year and creator given the media ID"""
     conn = dbi.connect()
+    print("session:", session)
     # uID=session['uid']
     media_info = queries.get_media(conn, mediaID)
+    print("media_info:", media_info)
     # collections=queries.getAllCollections(conn, uID)
     if request.method == "POST":
         if request.form['submit'] == 'add media':
-                mediaID = request.form['media-add']
-                # uID=session['uid']
-                cID = request.form['collection-add']
-                rating = request.form['rating']
-                review = request.form['review']
-                moodTag = request.form['mood']
-                genreTag = request.form['genre']
-                audienceTag = request.form['audience']
-                queries.insertInCollection(conn, mediaID, cID, rating, review, moodTag, genreTag, audienceTag)
-                # updating the media in the collection
-                #mediaCollection = queries.getMediaInCollection(conn, cID)
-                return render_template('mediaPage.html', media_info= media_info, mediaID=mediaID)
+            mediaID = request.form['media-add']
+            # uID=session['uid']
+            cID = request.form['collection-add']
+            rating = request.form['rating']
+            review = request.form['review']
+            moodTag = request.form['mood']
+            genreTag = request.form['genre']
+            audienceTag = request.form['audience']
+            queries.insertInCollection(conn, mediaID, cID, rating, review, moodTag, genreTag, audienceTag)
+            # updating the media in the collection
+            #mediaCollection = queries.getMediaInCollection(conn, cID)
+            return render_template('mediaPage.html', media_info= media_info, mediaID=mediaID)
         else:
             return render_template('mediaPage.html',  
-                media_info= media_info, mediaID=media['mediaID']
-                )
+                media_info= media_info, mediaID=media['mediaID'])
     else:
         return render_template('mediaPage.html',  
-                media_info= media_info, mediaID=mediaID
-                )
+                media_info= media_info, mediaID=mediaID)
                           
 @app.route('/update/<cID>', methods=['GET', 'POST'])
 def update(cID):

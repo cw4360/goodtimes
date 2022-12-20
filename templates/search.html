@@ -4,8 +4,6 @@
 <div class="searchbar" style="margin-top: 20px;">
     <form method="post" action="{{ url_for('search') }}"> 
         <input id="query" name="query" type="text" placeholder="Search for a user or media..." required>
-        <input id="search-button" type="submit" value="Search">
-        <br>
         <select id="mood" name="mood">
             <option value="">Filter mood</option>
             <option value="happy">happy</option>
@@ -32,24 +30,44 @@
             <option value="username">username</option>
             <option value="media">media type</option>                
         </select>
+        <input id="search-button" type="submit" value="Search">
+        <br>
     </form> 
 </div>
 
 <h2 class="description"> Explore all users:</h2>
-<article>
-    <ol>
-        {% for user in all_users %}
-            <li>{{user.name}} ({{user.username}}, {{user.uID}})</li>
-        {% endfor %}
-    </ol>
-</article>
-
+<div class="user-container">
+    {% for user in all_users %}
+    <a href="{{ url_for('user', username=user.username) }}">
+        <div class="user-box">
+            <p>{{user.name}} ({{user.username}})</p>
+        </div>
+    </a>
+    {% endfor %}
+</div>
 <h2 class="description"> Explore all media:</h2>
-<article>
-    <ol>
-        {% for media in all_media %}
-            <li>{{media.title}} ({{media.releaseYear}}, {{media.type}}, {{media.name}})</li>
-        {% endfor %}
-    </ol>
-</article>
+<div class="media-container">
+    {% for media in all_media %}
+    <a href="{{ url_for('media_info', mediaID=media.mediaID)}}">
+        <div class="media-box">
+            <p>
+                <span class="media-title">{{media.title}} </span>
+                <span class="year tag">{{media.releaseYear}}</span> 
+                {% if media.type == 'tv' %}
+                    <span class="tv tag">{{media.type}}</span>
+                {% elif media.type == 'movie' %}
+                    <span class="movie tag">{{media.type}}</span>
+                {% elif media.type == 'music' %}
+                    <span class="music tag">{{media.type}}</span>
+                {% elif media.type == 'game' %}
+                    <span class="game tag">{{media.type}}</span>
+                {% elif media.type == 'book' %}
+                    <span class="book tag">{{media.type}}</span>
+                {% endif %}
+                <span class="creator tag">{{media.name}}</span>
+            </p>
+        </div>
+    </a>
+    {% endfor %}
+</div>
 {% endblock %}
