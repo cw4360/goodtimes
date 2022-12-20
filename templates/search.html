@@ -48,7 +48,8 @@
 <article>
     <ol>
         {% for media in all_media %}
-            <li>{{media.title}} ({{media.releaseYear}}, {{media.type}}, {{media.name}})</li>
+            <li><a href="/media_details/{{media.mediaID}}/">
+                {{media.title}} ({{media.releaseYear}}, {{media.type}}, {{media.name}})</a></li>
         {% endfor %}
     </ol>
 </article>

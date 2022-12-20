@@ -14,8 +14,15 @@
                 </label>
 
                 <label for="addMedia">Add Media to Collection:
-                    <input type="text" id="collection-add" name="collection-add">
+                    <select name="addMedia" id="addMedia">
+                        <option value="other"></option>
+                        {% for collection in collections%}
+                            <option value="{{collection.collectionID}}">{{collection.name}}</option>
+                        {% endfor %}
+                    </select>
                 </label>
+
+
 
                 <label for="rating">Rating:
                     <input type="number" id="rating" name="rating" min="0" max="5">
@@ -56,5 +63,25 @@
                 </label>
                 <input type="submit" name="submit" value="add media">
             </form>
+
+            <br>
+            <br>
+            <p>See what other users thought:</p>
+            <table id="details">
+                <tr>
+                    <th>Rating</th>
+                    <th>Review</th>
+                    <th>Mood</th>
+                    <th>Genre</th>
+                    <th>Audience</th>
+                </tr>
+                {% for details in rated %}
+                <tr data-tt={{details.mediaID}}>
+                    <td class="rating">{{details.rating}}</td>
+                    <td class="review">{{details.review}}</td>
+                    <td class="moodtag">{{details.moodTag}}</td>
+                </tr>
+                {% endfor %}
+            </table>
             
 {% endblock %}
