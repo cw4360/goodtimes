@@ -210,3 +210,14 @@ def getRatedMedia(conn, mediaID):
     curs = dbi.dict_cursor(conn)
     curs.execute('''select * from mediaInCollections where mediaID=%s''', [mediaID])
     return curs.fetchall()
+
+def isUsersCollection(conn, uid, cID):
+    '''Given a user's ID and a collection ID, returns a boolean value of 
+    whether the collection belongs to the user.'''
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''select * from collections where uID=%s and collectionID=%s''', 
+        [uid, cID])
+    result = curs.fetchone()
+    print(result)
+    return result != None
+    

@@ -3,14 +3,13 @@
 {% block content %}
     <h1>{{collectionName}}</h1>
 
-    <p>Here is a list of all media in this collection:</p>   
+    <h4>Here is a list of all media in this collection:</h4>   
     <hr>
     <table>
         <tr>
             <th>Title</th>
             <th>Media Type</th>
             <th>Released</th>
-            <!--<th>Media ID</th>-->
             <th>Mood</th>
             <th>Genre</th>
             <th>Audience</th>
@@ -23,7 +22,6 @@
             <td>{{media.title}}</td>
             <td>{{media.type}}</td>
             <td>{{media.releaseYear}}</td>
-            <!--<td>{{media.mediaID}}</td>-->
             <td>{{media.moodTag}}</td>
             <td>{{media.genreTag}}</td>
             <td>{{media.audienceTag}}</td>
@@ -34,7 +32,8 @@
         {% endfor %}
     </table>
     <hr>
-    <p>Insert Media to this collection by searching for the Media in Explore</p>
+    {% if isUser %}
+    <h4>Insert Media to this collection by searching for the Media in Explore</h4>
     <div> <!-- Update Media -->
         <form method = "post" action = "{{url_for('collectionPage', cID = collectionID)}}">
             <label for="updateMedia">Media to Update:</label>
@@ -106,4 +105,5 @@
         <input type="submit" name="submit" value="delete media">
         <p><input type="submit" name="submit" value="back to user page"></p>
     </form>
+    {% endif %}
 {% endblock %}
