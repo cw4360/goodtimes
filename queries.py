@@ -183,7 +183,7 @@ def deleteMediaFromCollection(conn, cID, result):
 
 def updateMediaFromCollection(conn, cID, result):
     '''given a collectionID and result, updates the media from the collection'''
-    # is there a more succinct way to change these values to None?
+    # replace any values to None if they are any empty string
     resultA = {}
     for kind in ['rating', 'review', 'mood', 'genre', 'audience']:
         if result[kind] == '':
