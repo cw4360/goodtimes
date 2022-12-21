@@ -221,3 +221,12 @@ def isUsersCollection(conn, uid, cID):
     print(result)
     return result != None
     
+
+def isMediaInCollection(conn, mediaID, cID):
+    '''given a mediaID and a collectionID, returns a boolean value of whether the media is in the collection'''
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''select title, mediaID, rating, review, moodTag, genreTag, audienceTag from media inner join mediaInCollections 
+        using (mediaID) where mediaID = %s and collectionID = %s;''',
+        [mediaID, cID])
+    result = curs.fetchone()
+    return result != None

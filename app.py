@@ -312,23 +312,26 @@ def media_info(mediaID):
             if request.form['submit'] == 'add media':
                 mediaID = request.form['media-add']
                 cID = request.form['addMedia']
-                collection = queries.getMediaInCollection(conn, cID)
+                exists = queries.isMediaInCollection(conn, mediaID, cID)
                 rating = request.form['rating']
                 review = request.form['review']
                 moodTag = request.form['mood']
                 genreTag = request.form['genre']
                 audienceTag = request.form['audience']
-                print(collection)
                 #fix this to be a for loop? check that media is not already in collection
-                if mediaID not in collection:
+                if not exists:
                     queries.insertInCollection(conn, mediaID, cID, rating, review, moodTag, genreTag, audienceTag)
                     # updating the media in the collection
                     #mediaCollection = queries.getMediaInCollection(conn, cID)
                     flash("Media successfully inserted into collection!")
                     return render_template('mediaPage.html', media_info= media_info, mediaID=mediaID, 
                     uid=uid, collections=collections, rated=rated)
+
+                else:
+                    flash("The media you tried to insert is already in the specified collection!")
+                    return redirect(url_for('collectionPage', cID= cID))
+
         else:
-            flash('Media already in collection!')
             return render_template('mediaPage.html',  
                     media_info= media_info, mediaID=mediaID, uid=uid, collections=collections, rated=rated
                     )
