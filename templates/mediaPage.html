@@ -7,10 +7,6 @@
 <hr>
 <br>
 <form method = "post", action="{{ url_for('media_info', mediaID=mediaID)}}">
-    <label for="media-add">MediaID
-        <input type="text" id="media-add" name="media-add" value="{{mediaID}}">
-    </label>
-    <br>
     <label for="addMedia">Add Media to Collection:
         <select name="addMedia" id="addMedia">
             <option value="other"></option>

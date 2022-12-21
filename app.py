@@ -313,7 +313,6 @@ def media_info(mediaID):
         rated = queries.getRatedMedia(conn, mediaID)
         if request.method == "POST":
             if request.form['submit'] == 'add media':
-                mediaID = request.form['media-add']
                 cID = request.form['addMedia']
                 exists = queries.isMediaInCollection(conn, mediaID, cID)
                 rating = request.form['rating']
@@ -330,15 +329,13 @@ def media_info(mediaID):
                     return render_template('mediaPage.html', title="Media Detail Page",
                     media_info= media_info, mediaID=mediaID, 
                     uid=uid, collections=collections, rated=rated)
-
                 else:
                     flash("The media you tried to insert is already in the specified collection!")
                     return redirect(url_for('collectionPage',  title="View Collection", cID= cID))
-
         else:
             return render_template('mediaPage.html', title="Media Detail Page",
-                    media_info= media_info, mediaID=mediaID, uid=uid, collections=collections, rated=rated
-                    )
+                    media_info= media_info, mediaID=mediaID, 
+                    uid=uid, collections=collections, rated=rated)
 
 @app.before_first_request
 def init_db():
