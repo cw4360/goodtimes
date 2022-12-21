@@ -75,7 +75,7 @@ a {
 .nav {
     display: flex;
     flex-direction: row;
-    background: grey;
+    background: rgba(114, 120, 136, 0.3);
     border-radius: 10px;
     column-gap: 20px;
     justify-content: space-around;
@@ -135,13 +135,13 @@ input[type=submit]:hover {
     display: flex;
     flex-direction: row;
     justify-content: center;
+    align-items: center;
     column-gap: 6%;
     margin-top: 13px;
-    /* margin-bottom: 150px; */
 }
 
 .cs304 {
-    margin-top: 40px;
+    margin: 40px 0px;
 }
 
 .flex-row {
@@ -197,6 +197,80 @@ input[type=submit]:hover {
     border-radius: 16px;
 }
 
+.user-container, .media-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding-left: 15px;
+    gap: 10px;
+}
+
+.user-box {
+    background: rgba(114, 120, 136, 0.4);
+    border-radius: 16px;
+    padding: 1px 20px;
+    width: 300px;
+}
+
+.user-box, .media-box p {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.media-box {
+    background: rgba(114, 120, 136, 0.4);
+    border-radius: 16px;
+    padding: 1px 20px;
+}
+
+.media-title {
+    margin-right: 10px;
+}
+
+.tag {
+    border-radius: 10px;
+    padding: 1px 7px;
+    font-size: 400;
+    margin-right: 2px;
+}
+
+.year {
+    background: linear-gradient(90.42deg, #4AB1F1 0.58%, #566CEC 37.22%, #D749AF 73.87%, #FF7C51 112.26%);
+    color: white;
+}
+
+.tv {
+    background: linear-gradient(270deg, #D0F9BE 0%, #ADE9F1 100%);
+    color: rgb(15, 137, 92);
+    /* background: linear-gradient(270deg, #FBCEFF 0%, #FFD1D1 100%); */
+    /* color: rgba(140, 0, 126, 0.8); */
+}
+
+.movie {
+    background: linear-gradient(270deg, #FDE1BC 0%, #FFAEAE 100%);
+    color: rgba(204, 61, 0, 0.8);
+}
+
+.music {
+    background: linear-gradient(270deg, #C3C2FF 0%, #9DBEFF 100%);
+    color: rgba(28, 48, 157, 0.7);
+}
+
+.game {
+    background: linear-gradient(270deg, #F0D6FF 0%, #D3CDFF 100%);
+    color: rgba(92, 27, 174, 0.8);
+}
+
+.book {
+    background: linear-gradient(270deg, #B8F8FF 0%, #AFD4FF 99.55%);
+    color: rgba(0, 113, 194, 0.8);
+}
+
+.creator {
+    background: rgba(0, 187, 131, 0.8);
+    color: white;
+}
+
 /* User Profile Page */
 .my-collections {
     font-style: normal;
@@ -248,4 +322,13 @@ input[type=submit]:hover {
 
     /* Dark/Primary Text */
     color: #ECEDEE;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid white;
+    padding: 6px 8px;
 }

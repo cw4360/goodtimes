@@ -1,16 +1,24 @@
-{% extends "loggedIn.html" %}
+{% extends "navbar.html" %}
 
 {% block content %}
 <div style="margin-left: 10%; margin-right: 10%;">
     <div class="profile-card">
         <div class="profile-id">
-            <h2>[Name]'s Profile ({{username}})</h2>
+            <h2>{{userInfo.name}}'s Profile ({{userInfo.username}})</h2>
         </div>
     </div>
-    <form method = "post" action = "{{url_for('user', username=username)}}">
+
+    {% if isUser %}
+    <form method = "post" action = "{{url_for('user', username=userInfo.username)}}">
+        <label for="name">Edit Name:</label>
+        <input id="name" name="name" type="text">
+        <input type="submit" name="submit" value="update name">
+        <br>
+
         <label for="createCollection">Create Collection:</label>
         <input id="createCollection" type="submit" name="submit" value="create collection">
         <br>
+
         <label for="viewForm">View Collection:</label>
         <select name = "collectionID" id="viewForm">
             {% for collection in collections%}
@@ -19,6 +27,7 @@
         </select>
         <input type="submit" name="submit" value="view">
         <br>
+
         <label for="deleteForm">Delete Collection:</label>
         <select name = "collectionID" id="deleteForm">
             {% for collection in collections%}
@@ -27,7 +36,10 @@
         </select>
         <input type="submit" name="submit" value="delete">
     </form>
-    <p class="my-collections">MY COLLECTIONS</p>  
+    {% endif %}
+
+    <!-- Displays user's collections -->
+    <p class="my-collections">COLLECTIONS</p>  
     <div class="collection-container">
         {% for collection in collections %}
         <a href="{{ url_for('collectionPage', cID=collection.collectionID)}}">

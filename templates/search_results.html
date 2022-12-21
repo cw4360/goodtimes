@@ -1,11 +1,9 @@
-{% extends "loggedIn.html" %}
+{% extends "explore.html" %}
 
-{# replaces default headstuff block #}
 {% block headstuff %}
 <title>Search Results</title>
 {% endblock %}
 
-{# replaces default content block #}
 {% block content %}
     <!-- {# If length of search results is 0, displays that no person/movie 
         was in the database. Else, displays the search results matching 
@@ -16,24 +14,54 @@
 
     {% else %} -->
         {% if kind == "username"%}
-        <p class="description"> Users matching "{{query}}":</p>
-        <article>
-            <ol>
-                {% for user in search_results %}
-                    <li>{{user.name}} ({{user.username}})</li>
-                {% endfor %}
-            </ol>
-        </article>
+        <h3 class="description"> Users matching "{{query}}"
+            {% if mood %}
+            <span>, mood:"{{mood}}",</span>
+            {% endif %}
+            {% if genre %}
+            <span>, genre:"{{genre}}",</span>
+            {% endif %}
+            {% if audience %}
+            <span>, audience:"{{audience}}"</span>
+            {% endif %}:
+        </h3>
+        <div class="user-container">
+            {% for user in search_results %}
+            <a href="{{ url_for('user', username=user.username) }}">
+                <div class="user-box">
+                    <p>{{user.name}} ({{user.username}})</p>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
 
         {% else %}
-            <p class="description">Media matching {{query}}:</p>
-            <article>
-                <ol>
-                    {% for media in search_results %}
-                    <li><a href={{url_for('media_info', mediaID=media.mediaID)}}>{{media.title}} ({{media.releaseYear}}, {{media.type}})</a></li>
-                {% endfor %}
-                </ol>
-            </article>
+        <h3 class="description">Media matching "{{query}}":</h3>
+        <div class="media-container">
+            {% for media in search_results %}
+            <a href="{{ url_for('media_info', mediaID=media.mediaID)}}">
+                <div class="media-box">
+                    <p>
+                        <span class="media-title">{{media.title}} </span>
+                        <span class="year tag">{{media.releaseYear}}</span> 
+                        {% if media.type == 'tv' %}
+                            <span class="tv tag">{{media.type}}</span>
+                        {% elif media.type == 'movie' %}
+                            <span class="movie tag">{{media.type}}</span>
+                        {% elif media.type == 'music' %}
+                            <span class="music tag">{{media.type}}</span>
+                        {% elif media.type == 'game' %}
+                            <span class="game tag">{{media.type}}</span>
+                        {% elif media.type == 'book' %}
+                            <span class="book tag">{{media.type}}</span>
+                        {% endif %}
+                        <!-- No creator currently found through do_search -->
+                        <!-- <span class="creator tag">{{media.name}}</span> -->
+                    </p>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
         {% endif %}
     {% endif %}
 {% endblock %}
