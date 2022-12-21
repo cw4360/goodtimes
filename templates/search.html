@@ -12,6 +12,8 @@
     {% endfor %}
 </div>
 <h2 class="description"> Explore all media:</h2>
+<p class="instructions">To see media details and add it to a collection, 
+    click on the specific media page below or through a search!</p>
 <div class="media-container">
     {% for media in all_media %}
     <a href="{{ url_for('media_info', mediaID=media.mediaID)}}">
