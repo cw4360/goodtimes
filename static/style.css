@@ -4,10 +4,17 @@ body {
     font-family: 'Inter', sans-serif;
 }
 
+h1 {
+    font-size: 26px;
+}
+
+h2 {
+    font-size: 20px;
+}
+
 p {
     font-size: small;
     letter-spacing: 0.5px;
-    /* line-height: px; */
 }
 
 a {
@@ -91,6 +98,14 @@ a {
     padding-top: 20px;
 }
 
+.join-login-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap; 
+    column-gap: 30px;
+}
+
 .join-login {
     display: flex;
     flex-direction: column;
@@ -142,15 +157,6 @@ input[type=submit]:hover {
 
 .cs304 {
     margin: 40px 0px;
-}
-
-.flex-row {
-    display: flex;
-    flex-direction: row;
-}
-
-.flex-center {
-    justify-content: center;
 }
 
 /* Explore Page */
@@ -230,7 +236,7 @@ input[type=submit]:hover {
 .tag {
     border-radius: 10px;
     padding: 1px 7px;
-    /* font-size: 400; */
+    font-size: 14px;
     margin-right: 2px;
 }
 
@@ -242,8 +248,6 @@ input[type=submit]:hover {
 .tv {
     background: linear-gradient(270deg, #D0F9BE 0%, #ADE9F1 100%);
     color: rgb(15, 137, 92);
-    /* background: linear-gradient(270deg, #FBCEFF 0%, #FFD1D1 100%); */
-    /* color: rgba(140, 0, 126, 0.8); */
 }
 
 .movie {
@@ -298,14 +302,12 @@ input[type=submit]:hover {
     padding: 10px;
     width: 150px;
     border-radius: 16px;
-    /* background: #9fbfff; */
 }
 
 .collection-photo {
     width: 150px;
     height: 150px;
     background: linear-gradient(45deg, #4AB1F1 0.58%, #566CEC 37.22%, #D749AF 73.87%, #FF7C51 112.26%);
-    /* background: linear-gradient(45deg, #1584EB 0%, #24D6D9 97.34%); */
     border-radius: 16px;
     border: none;
 }

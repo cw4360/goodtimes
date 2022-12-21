@@ -3,7 +3,7 @@
 {% block content %}
 <h1 class="title">{{media_info.title}}</h1>
 <hr>
-<h3 class="details">{{media_info.title}} ({{media_info.type}}), released in {{media_info.releaseYear}}.</h3>
+<h2 class="details">{{media_info.title}} ({{media_info.type}}), released in {{media_info.releaseYear}}.</h2>
 <hr>
 <br>
 <form method = "post", action="{{ url_for('media_info', mediaID=mediaID)}}">

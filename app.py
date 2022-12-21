@@ -24,7 +24,7 @@ app.config['TRAP_BAD_REQUEST_ERRORS'] = True
 def index():
     """ Renders GoodTimes' home page, which includes functionality
     to create an account or log into their user account."""
-    return render_template("home.html")
+    return render_template("home.html", title="GoodTimes")
 
 @app.route('/join/', methods=['GET', 'POST'])
 def join():
@@ -135,7 +135,8 @@ def user(username):
         collections = queries.getAllCollections1(conn, username)
 
         if uid != userInfo['uid']: ## user is viewing another user's profile
-            return render_template('userPage.html', isUser=False, userInfo=userInfo, collections=collections)
+            return render_template('userPage.html', title="My Profile", isUser=False, 
+                userInfo=userInfo, collections=collections)
         else: ## user is viewing their own profile, and has access to manage profile and collections
             if request.method == "POST":
                 if request.form['submit'] == 'update name':
@@ -156,9 +157,11 @@ def user(username):
                     # this updates collections so the page rerenders correctly
                     collections = queries.getAllCollections(conn, uid)
 
-                return render_template('userPage.html', isUser=True, userInfo=userInfo, collections=collections)
+                return render_template('userPage.html', title="My Profile", isUser=True, 
+                    userInfo=userInfo, collections=collections)
             else:
-                return render_template('userPage.html', isUser=True, userInfo=userInfo, collections=collections)
+                return render_template('userPage.html', title="My Profile", isUser=True, 
+                    userInfo=userInfo, collections=collections)
 
 @app.route('/createCollection/', methods = ["GET", "POST"])
 def createCollection():
@@ -170,19 +173,19 @@ def createCollection():
         conn = dbi.connect()
         formInput = request.form
         if request.method == "GET":
-            return render_template('createCollectionForm.html')
+            return render_template('createCollectionForm.html', title="Create Collection")
         else:
             newID = queries.insertCollection(conn, formInput, session['uid'])
             # newID = queries.getLatestId(conn)
             # redirects to collection detail page, will be updated with correct url_for()
-            return redirect(url_for('collectionPage', cID=newID['last_insert_id()']))
+            return redirect(url_for('collectionPage', title="View Collection", cID=newID['last_insert_id()']))
 
 @app.route('/collection/<cID>', methods = ["GET", "POST"])
 def collectionPage(cID): 
     """collection detail page, includes all media in that collection"""
     if 'username' not in session:
         flash('You are not logged in. Please login or join.')
-        return redirect(url_for('index'))
+        return redirect(url_for('index', title="GoodTimes",))
     else:
         conn = dbi.connect()
         uid = session['uid'] ## get current user's UID
@@ -190,19 +193,19 @@ def collectionPage(cID):
         mediaCollection = queries.getMediaCreatorInCollection(conn, cID)
 
         if not queries.isUsersCollection(conn, uid, cID):
-            return render_template('collectionPage.html', isUser=False,
+            return render_template('collectionPage.html', title="View Collection", isUser=False,
                 collectionID = cID, collectionName=collectionName, mediaInCollection = mediaCollection)
 
         else:
             if request.method == "GET":
-                return render_template('collectionPage.html', isUser=True,
+                return render_template('collectionPage.html', title="View Collection", isUser=True,
                     collectionID = cID, collectionName=collectionName, mediaInCollection = mediaCollection)
             if request.method == "POST":
                 if request.form['submit'] == 'back to user page':
-                    return redirect(url_for('user', username=session['username']))
+                    return redirect(url_for('user', title="My Profile", username=session['username']))
                 if request.form['submit'] == 'add media':
                     toAdd = request.form
-                    return redirect(url_for('search'))
+                    return redirect(url_for('search', title="Explore",))
                 #deletes media from the given collection
                 if request.form['submit'] == 'delete media':
                     toDelete = request.form
@@ -217,7 +220,7 @@ def collectionPage(cID):
                     queries.updateMediaFromCollection(conn, cID, toUpdate)
                     mediaCollection = queries.getMediaCreatorInCollection(conn, cID)
 
-                return render_template('collectionPage.html', isUser=True,
+                return render_template('collectionPage.html', title="View Collection", isUser=True,
                     collectionID = cID, collectionName=collectionName, mediaInCollection = mediaCollection)
                 
 
@@ -229,14 +232,14 @@ def search():
     the search results as a list."""
     if 'username' not in session:
         flash('You are not logged in. Please login or join.')
-        return redirect(url_for('index'))
+        return redirect(url_for('index', title="GoodTimes",))
     else:
         conn = dbi.connect()
         print("session:", session)
         if request.method == 'GET':
             all_users = queries.getAllUsers(conn)
             all_media = queries.getAllMediaAndCreator(conn)
-            return render_template('search.html', 
+            return render_template('search.html', title="Explore",
                 all_users=all_users, all_media=all_media)
         if request.method == 'POST':
             #gets responses from the form
@@ -256,12 +259,12 @@ def search():
             #if media does not match filter options
             elif len(search_results) == 0:
                 flash("No media matches these filter options")
-                return render_template("search_results.html", 
+                return render_template("search_results.html", title="Search Results",
                     query=query, kind=kind, mood=mood, genre=genre, audience=audience,
                     search_results=search_results, length=len(search_results))
             #display results of search if exists
             else:
-                return render_template("search_results.html", 
+                return render_template("search_results.html", title="Search Results",
                     query=query, kind=kind, mood=mood, genre=genre, audience=audience,
                     search_results=search_results, length=len(search_results))
 
@@ -270,13 +273,13 @@ def insert():
     """renders form for inserting new media"""
     if 'username' not in session:
         flash('You are not logged in. Please login or join.')
-        return redirect(url_for('index'))
+        return redirect(url_for('index', title="GoodTimes",))
     else:
         conn = dbi.connect()
         creators = queries.getAllCreators(conn)
 
         if request.method == "GET":
-            return render_template('insert.html', allCreators=creators)
+            return render_template('insert.html', title="Insert New Media", allCreators=creators)
         if request.method == 'POST':
             media_title = request.form['media_title']
             media_release = request.form['media_release']
@@ -285,7 +288,7 @@ def insert():
             queries.getMediaInCollection(conn, )
             # detect incomplete form
             if media_title == "" or media_release == "" or media_type == "" or media_pID =="":
-                return render_template('insert.html', msg="Form is not complete, fill in missing info")
+                return render_template('insert.html', title="Insert New Media", msg="Form is not complete, fill in missing info")
             # if media id doesn't exist
             else:
                 # if no media creator was selected, change value to NULL
@@ -294,14 +297,14 @@ def insert():
                 # insert the media
                 queries.insert_media(conn, media_title, media_release, media_type, media_pID)
                 flash('Media successfully inserted!')
-                return render_template('insert.html', media_title=media_title, media_release=media_release, media_type=media_type)
+                return render_template('insert.html', title="Insert New Media", media_title=media_title, media_release=media_release, media_type=media_type)
             
 @app.route('/media_details/<mediaID>', methods = ["GET", "POST"])
 def media_info(mediaID):
     """page for details of the movie like release year and creator given the media ID"""
     if 'username' not in session:
         flash('You are not logged in. Please login or join.')
-        return redirect(url_for('index'))
+        return redirect(url_for('index', title="GoodTimes", ))
     else:
         conn = dbi.connect()
         media_info = queries.get_media(conn, mediaID)
@@ -324,15 +327,16 @@ def media_info(mediaID):
                     # updating the media in the collection
                     #mediaCollection = queries.getMediaInCollection(conn, cID)
                     flash("Media successfully inserted into collection!")
-                    return render_template('mediaPage.html', media_info= media_info, mediaID=mediaID, 
+                    return render_template('mediaPage.html', title="Media Detail Page",
+                    media_info= media_info, mediaID=mediaID, 
                     uid=uid, collections=collections, rated=rated)
 
                 else:
                     flash("The media you tried to insert is already in the specified collection!")
-                    return redirect(url_for('collectionPage', cID= cID))
+                    return redirect(url_for('collectionPage',  title="View Collection", cID= cID))
 
         else:
-            return render_template('mediaPage.html',  
+            return render_template('mediaPage.html', title="Media Detail Page",
                     media_info= media_info, mediaID=mediaID, uid=uid, collections=collections, rated=rated
                     )
 

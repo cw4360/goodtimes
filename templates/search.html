@@ -1,7 +1,7 @@
 {% extends "explore.html" %}
 
 {% block content %}
-<h2 class="description"> Explore all users:</h2>
+<h1 class="description"> Explore all users:</h1>
 <div class="user-container">
     {% for user in all_users %}
     <a href="{{ url_for('user', username=user.username) }}">
@@ -11,7 +11,7 @@
     </a>
     {% endfor %}
 </div>
-<h2 class="description"> Explore all media:</h2>
+<h1 class="description"> Explore all media:</h1>
 <p class="instructions">To see media details and add it to a collection, 
     click on the specific media page below or through a search!</p>
 <div class="media-container">
