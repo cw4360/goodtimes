@@ -200,10 +200,12 @@ def collectionPage(cID):
             if request.method == "POST":
                 if request.form['submit'] == 'back to user page':
                     return redirect(url_for('user', username=session['username']))
+                if request.form['submit'] == 'add media':
+                    toAdd = request.form
+                    return redirect(url_for('search'))
                 #deletes media from the given collection
                 if request.form['submit'] == 'delete media':
                     toDelete = request.form
-                    print (toDelete)
                     queries.deleteMediaFromCollection(conn, cID, toDelete)
                     # updating the media collection after deleting
                     mediaCollection = queries.getMediaCreatorInCollection(conn, cID)
@@ -217,6 +219,7 @@ def collectionPage(cID):
 
                 return render_template('collectionPage.html', isUser=True,
                     collectionID = cID, collectionName=collectionName, mediaInCollection = mediaCollection)
+                
 
 @app.route('/search/', methods = ['GET', 'POST'])
 def search():
@@ -264,7 +267,7 @@ def search():
 
 @app.route('/insert/', methods=["GET", "POST"])
 def insert():
-    """If the media does not exist, this renders the form for inserting a new one"""
+    """renders form for inserting new media"""
     if 'username' not in session:
         flash('You are not logged in. Please login or join.')
         return redirect(url_for('index'))

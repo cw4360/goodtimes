@@ -46,11 +46,11 @@ values ('Catherine Wang', 'cw4', '123');
 
 --populating creator table with directors from wmdb
 insert into creator(pID, name)
-select null, name from wmdb.person;
+select nm, name from wmdb.person where nm >20;
 
 --populating media table with movies from the wmdb
-insert into media(title, releaseYear)
-select title, `release` from wmdb.movie;
+insert into media(mediaID, title, releaseYear)
+select tt, title, `release` from wmdb.movie;
 update media set type = 'movie' where mediaID > 40;
 
 

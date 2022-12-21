@@ -1,0 +1,1067 @@
+# CS304 Final Project: GoodTimes
+# Team: Audrey, Catherine, Rik
+
+from flask import (Flask, render_template, make_response, url_for, request,
+                   redirect, flash, session, send_from_directory, jsonify)
+from werkzeug.utils import secure_filename
+app = Flask(__name__)
+
+import cs304dbi as dbi
+import random
+import bcrypt
+import queries
+
+app.secret_key = 'your secret here' # replace that with a random key
+app.secret_key = ''.join([ random.choice(('ABCDEFGHIJKLMNOPQRSTUVXYZ' +
+                                          'abcdefghijklmnopqrstuvxyz' +
+                                          '0123456789'))
+                           for i in range(20) ])
+
+# This gets us better error messages for certain common request errors
+app.config['TRAP_BAD_REQUEST_ERRORS'] = True
+
+@app.route('/')
+def index():
+    """ Renders GoodTimes' home page, which includes functionality
+    to create an account or log into their user account."""
+    return render_template("home.html")
+
+@app.route('/join/', methods=['POST'])
+def join():
+    """ Given a username and a confirmed password, adds new user to
+    GoodTimes user table in database. Then logs user in. """
+    username = request.form.get('username')
+    passwd1 = request.form.get('password1')
+    passwd2 = request.form.get('password2')
+    if passwd1 != passwd2:
+        flash('Passwords do not match')
+        return redirect(url_for('index'))
+    hashed = bcrypt.hashpw(passwd1.encode('utf-8'), bcrypt.gensalt())
+    stored = hashed.decode('utf-8')
+    print("password:", passwd1, type(passwd1), hashed, stored)
+    conn = dbi.connect()
+    curs = dbi.cursor(conn)
+    try:
+        curs.execute('''insert into user(uid,username,hashed)
+            values(null,%s,%s)''', [username, stored])
+        conn.commit()
+    except Exception as err:
+        flash('The username is taken: {}'.format(repr(err)))
+        return redirect(url_for('index'))
+    curs.execute('select last_insert_id()')
+    row = curs.fetchone()
+    uid = row[0]
+    flash('FYI, you were issued UID {}'.format(uid))
+    session['username'] = username
+    session['uid'] = uid
+    session['logged_in'] = True
+    session['visits'] = 1
+    return redirect(url_for('user', username=username))
+
+@app.route('/login/', methods=['POST'])
+def login():
+    """ Given the username and password of an existing 
+    GoodTimes user, logs the user into their account and 
+    renders their user page."""
+    username = request.form.get('username')
+    passwd = request.form.get('password')
+    conn = dbi.connect()
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''select uid,hashed from user
+                    where username = %s''', [username])
+    row = curs.fetchone()
+    if row is None:
+        # same response as wrong password, so no information
+        # about what went wrong
+        flash('Login incorrect. Try again or create account')
+        return redirect(url_for('index'))
+    stored = row['hashed']
+    print('database has stored: {} {}'.format(stored,type(stored)))
+    print('form supplied passwd: {} {}'.format(passwd,type(passwd)))
+    hashed2 = bcrypt.hashpw(passwd.encode('utf-8'),
+                            stored.encode('utf-8'))
+    hashed2_str = hashed2.decode('utf-8')
+    print('rehash is: {} {}'.format(hashed2_str,type(hashed2_str)))
+    if hashed2_str == stored:
+        print('Password matches!')
+        flash('Successfully logged in as '+username)
+        session['username'] = username
+        session['uid'] = row['uid']
+        session['logged_in'] = True
+        session['visits'] = 1
+        return redirect( url_for('user', username=username) )
+    else:
+        flash('Login incorrect. Try again or join')
+        return redirect( url_for('index'))
+
+@app.route('/logout/')
+def logout():
+    """ Logs user out of GoodTimes."""
+    if 'username' in session:
+        username = session['username']
+        session.pop('username')
+        session.pop('uid')
+        session.pop('logged_in')
+        flash('You are logged out')
+        return redirect(url_for('index'))
+    else:
+        flash('You are not logged in. Please login or join.')
+        return redirect(url_for('index'))
+    
+@app.route('/search/', methods = ['GET', 'POST'])
+def search():
+    """ On the search page, users will initially see a list of all 
+    GoodTime users and all media. If no results found, renders a 
+    page to insert a new media to the database. Otherwise, displays
+    the search results as a list."""
+    conn = dbi.connect()
+    if request.method == 'GET':
+        all_users = queries.getAllUsers(conn)
+        all_media = queries.getAllMediaAndCreator(conn)
+        return render_template('search.html', 
+            all_users=all_users, all_media=all_media)
+    else:
+        #gets responses from the form
+        query = request.form['query']
+        kind = request.form['kind']
+        mood = request.form['mood']
+        genre = request.form['genre']
+        audience = request.form['audience']
+
+        # do search and store search results
+        search_results = queries.do_search(conn, query, kind, mood, genre, audience)
+        #if searched media does not exist
+        if len(search_results) == 0 and mood=="" and genre=="" and audience=="":
+            return redirect(url_for('insert'))
+        #if media does not match filter options
+        elif len(search_results) == 0:
+            flash("No media matches these filter options")
+            return render_template("search_results.html", 
+                query=query, kind=kind, search_results=search_results, length=len(search_results))
+        #display results of search if exists
+        else:
+            return render_template("search_results.html", 
+                query=query, kind=kind, search_results=search_results, length=len(search_results))
+
+@app.route('/insert/', methods=["GET", "POST"])
+def insert():
+    """If the media does not exist, this renders the form for inserting a new one"""
+    conn = dbi.connect()
+    creators = queries.getAllCreators(conn);
+
+    if request.method == "GET":
+        return render_template('insert.html', allCreators=creators)
+    else:
+        media_title = request.form['media_title']
+        media_release = request.form['media_release']
+        media_type = request.form['media_type']
+        media_pID = request.form['media_creator']
+
+         # detect incomplete form
+        if media_title == "" or media_release == "" or media_type == "" or media_pID =="":
+            return render_template('insert.html', msg="Form is not complete, fill in missing info")
+
+        # if media id doesn't exist
+        else:
+            # insert the media
+            queries.insert_media(conn, media_title, media_release, media_type, media_pID)
+            flash('Media successfully inserted!')
+            return render_template('insert.html', media_title=media_title, media_release=media_release, media_type=media_type)
+
+@app.route('/createCollection/', methods = ["GET", "POST"])
+def createCollection():
+    """creates a new collection"""
+    conn = dbi.connect()
+    formInput = request.form
+
+    if request.method == "GET":
+        return render_template('createCollectionForm.html')
+
+    else:
+        newID = queries.insertCollection(conn, formInput, session['uid'])
+        # newID = queries.getLatestId(conn)
+        # redirects to collection detail page, will be updated with correct url_for()
+        return redirect(url_for('collectionPage', cID=newID['last_insert_id()']))
+
+
+@app.route('/collection/<cID>', methods = ["GET", "POST"])
+def collectionPage(cID): 
+    """collection detail page, includes all media in that collection"""
+    conn = dbi.connect()
+    collectionName = queries.getCollectionName(conn, cID)
+    mediaCollection = queries.getMediaCreatorInCollection(conn, cID)
+
+    if request.method == "POST":
+        if request.form['submit'] == 'back to user page':
+            return redirect(url_for('user', username=session['username']))
+        #deletes media from the given collection
+        if request.form['submit'] == 'delete media':
+            toDelete = request.form
+            print (toDelete)
+            queries.deleteMediaFromCollection(conn, cID, toDelete)
+            # updating the media collection after deleting
+            mediaCollection = queries.getMediaCreatorInCollection(conn, cID)
+
+        #updates the media in the collection
+        if request.form['submit'] == 'update media':
+            toUpdate = request.form
+            print(toUpdate)
+            queries.updateMediaFromCollection(conn, cID, toUpdate)
+            mediaCollection = queries.getMediaCreatorInCollection(conn, cID)
+
+        return render_template('collectionPage.html', 
+            collectionID = cID, collectionName=collectionName, mediaInCollection = mediaCollection)
+    else:
+        return render_template('collectionPage.html', 
+            collectionID = cID, collectionName=collectionName, mediaInCollection = mediaCollection)
+
+@app.route('/user/<username>', methods = ["GET", "POST"])
+def user(username):
+    """ Given a user's unique username, renders their user page with
+    all their collections displayed and options to manage their 
+    collections."""
+    conn = dbi.connect()
+    uid = session['uid']
+    collections = queries.getAllCollections(conn, uid)
+
+    if request.method == "POST":
+        if request.form['submit'] == 'create collection':
+            return redirect(url_for('createCollection'))
+
+        # Catherine's comment: Not sure if we need this with the boxes
+        if request.form['submit'] == 'view':
+            toView = request.form
+            print(toView)
+            return redirect(url_for('collectionPage', cID = toView['collectionID']))
+
+        if request.form['submit'] == 'delete': #may need to update value to be more specific
+            toDelete = request.form
+            queries.deleteCollection(conn, toDelete)
+            # this updates collections so the page rerenders correctly
+            collections = queries.getAllCollections(conn, uid)
+
+        return render_template('userPage.html', username=username, collections=collections)
+    else:
+        return render_template('userPage.html', username=username, collections=collections)
+
+@app.route('/media_details/<int:mediaID>/', methods = ["GET", "POST"])
+def media_info(mediaID):
+    """page for details of the movie like release year and creator given the media ID"""
+    conn = dbi.connect()
+    # uID=session['uid']
+    media_info = queries.get_media(conn, mediaID)
+    # collections=queries.getAllCollections(conn, uID)
+    if request.method == "POST":
+        if request.form['submit'] == 'add media':
+                mediaID = request.form['media-add']
+                # uID=session['uid']
+                cID = request.form['collection-add']
+                rating = request.form['rating']
+                review = request.form['review']
+                moodTag = request.form['mood']
+                genreTag = request.form['genre']
+                audienceTag = request.form['audience']
+                queries.insertInCollection(conn, mediaID, cID, rating, review, moodTag, genreTag, audienceTag)
+                # updating the media in the collection
+                #mediaCollection = queries.getMediaInCollection(conn, cID)
+                return render_template('mediaPage.html', media_info= media_info, mediaID=mediaID)
+        else:
+            return render_template('mediaPage.html',  
+                media_info= media_info, mediaID=media['mediaID']
+                )
+    else:
+        return render_template('mediaPage.html',  
+                media_info= media_info, mediaID=mediaID
+                )
+                          
+@app.route('/update/<cID>', methods=['GET', 'POST'])
+def update(cID):
+    # thinking of adding the update form for a media to a separate page
+    pass
+
+@app.before_first_request
+def init_db():
+    db_to_use = 'goodtime_db' # use team database
+    dbi.conf(db_to_use)
+    print('will connect to {}'.format(db_to_use))
+
+if __name__ == '__main__':
+    import sys, os
+    if len(sys.argv) > 1:
+        # arg, if any, is the desired port number
+        port = int(sys.argv[1])
+        assert(port>1024)
+    else:
+        port = os.getuid()
+    app.debug = True
+    app.run('0.0.0.0',port)
+import cs304dbi as dbi
+
+def do_search(conn, query, kind, mood, genre, audience):
+    """does a search on the media depending on the typed query, kind of search (media or user), as well as any mood, genre, or audience tags"""
+    curs = dbi.dict_cursor(conn)
+    if kind == "username": 
+        curs.execute('''select * from user where username like %s or name like %s''', 
+        ["%"+query+"%", "%"+query+"%"])
+    elif kind == "media" and mood == "" and genre == "" and audience == "": 
+        curs.execute('''select * from media where title like %s''', 
+        ["%"+query+"%"])
+    elif kind == "media" and mood != "" and genre == "" and audience == "":
+        curs.execute('''select * from media inner join mediaInCollections on media.mediaID=mediaInCollections.mediaID 
+        where title like %s and moodTag=%s''', 
+        ["%"+query+"%", mood])
+    elif kind == "media" and mood == "" and genre != "" and audience == "":
+        curs.execute('''select * from media inner join mediaInCollections on media.mediaID=mediaInCollections.mediaID 
+        where title like %s and genreTag=%s''', 
+        ["%"+query+"%", genre])
+    elif kind == "media" and mood == "" and genre == "" and audience != "":
+        curs.execute('''select * from media inner join mediaInCollections on media.mediaID=mediaInCollections.mediaID 
+        where title like %s and audienceTag=%s''', 
+        ["%"+query+"%", audience])
+    elif kind == "media" and mood != "" and genre != "" and audience == "":
+        curs.execute('''select * from media inner join mediaInCollections on media.mediaID=mediaInCollections.mediaID 
+        where title like %s and moodTag=%s and genreTag=%s''', 
+        ["%"+query+"%", mood, genre])
+    elif kind == "media" and mood != "" and genre == "" and audience != "":
+        curs.execute('''select * from media inner join mediaInCollections on media.mediaID=mediaInCollections.mediaID 
+        where title like %s and moodTag=%s and audienceTag=%s''', 
+        ["%"+query+"%", mood, audience])
+    elif kind == "media" and mood == "" and genre != "" and audience != "":
+        curs.execute('''select * from media inner join mediaInCollections on media.mediaID=mediaInCollections.mediaID 
+        where title like %s and genreTag=%s and audienceTag=%s''', 
+        ["%"+query+"%", genre, audience])
+    elif kind == "media" and mood != "" and genre != "" and audience != "":
+        curs.execute('''select * from media inner join mediaInCollections on media.mediaID=mediaInCollections.mediaID 
+        where title like %s and moodTag=%s and genreTag=%s and audienceTag=%s''', 
+        ["%"+query+"%", mood, genre, audience])
+        #select the mediaID rows from mediaInCollectiosn that corresponds to mood, genre and audience
+        #but we want the media from the media table give mediaID, only appear once
+    return curs.fetchall()
+
+def insert_media(conn, media_title, media_release, media_type, media_pID):
+   '''Given media data, inserts media into database'''
+   curs = dbi.dict_cursor(conn)
+   curs.execute('''insert into media(title,releaseYear,type, pID)
+                values (%s, %s, %s, %s)''', 
+                [media_title, media_release, media_type, media_pID])
+   conn.commit()
+
+def getAllUsers(conn):
+    '''returns uid, name, and username of all users'''
+    curs = dbi.dict_cursor(conn)
+    curs.execute('select * from user')
+    return curs.fetchall()
+
+def getAllMedia(conn):
+    '''returns mediaID, title, releaseYear, type, pID of all media'''
+    curs = dbi.dict_cursor(conn)
+    curs.execute('select * from media')
+    return curs.fetchall()
+
+def getAllMediaAndCreator(conn):
+    '''returns mediaID< title, releaseYear, type, pID, and name of all media associated with a creator'''
+    curs = dbi.dict_cursor(conn)
+    curs.execute('select mediaID, title, releaseYear, type, media.pID, name from media inner join creator on media.pID = creator.pID')
+    return curs.fetchall()
+
+# inserts data for new collection into collections table and returns new ID
+def insertCollection(conn, result, uID):
+    '''given collection name and current uID, creates a new collection in the collections table and
+    returns the collectionID of the newly created collection'''
+    curs = dbi.dict_cursor(conn)
+    curs.execute('insert into collections(name, uID) values (%s, %s)', 
+        [result['collectionName'], uID])
+    conn.commit()
+    curs.execute('select last_insert_id()')
+    return curs.fetchone()
+
+# returns last_insert_id()
+# def getLatestId(conn):
+#     curs = dbi.dict_cursor(conn)
+#     curs.execute('select last_insert_id()')
+#     return curs.fetchone()
+
+def getCollectionName(conn, cID):
+    '''given a collectionID, returns the name of that collection'''
+    curs = dbi.dict_cursor(conn)
+    curs.execute('select name from collections where collectionID=%s', 
+        [cID])
+    return curs.fetchone()['name']
+
+def getMediaTitle(conn, mediaID):
+    '''given a mediaID, returns the title of that media'''
+    curs = dbi.dict_cursor(conn)
+    curs.execute('select title from media where mediaID=%s',
+        [mediaID])
+    return curs.fetchone()
+
+def getCreator(conn, pID): # may be deleted later
+    '''given a personID, returns the name of that creator'''
+    curs = dbi.dict_cursor(conn)
+    curs.execute('select name from creator where pID=%s',
+        [pID])
+    return curs.fetchone()
+
+def get_media(conn, mediaID):
+    '''given a mediaID, returns the mediaID, title, releaseYear, type, and pID for that particular media'''
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''select * from media where mediaID=%s;''',
+        [mediaID])
+    return curs.fetchall()
+
+
+def getAllCollections(conn, uID): #uID no longer hard coded
+    '''given a uID, returns all collections (collectionID, name, uID) made by that user'''
+    curs = dbi.dict_cursor(conn)
+    curs.execute('select * from collections where uID = %s;',
+        [uID])
+    return curs.fetchall()
+
+def getAllCreators(conn):
+    '''returns all pID, name from the creator table, sorted alphabetically'''
+    curs = dbi.dict_cursor(conn)
+    curs.execute('select * from creator order by name;')
+    return curs.fetchall()
+
+def getMediaInCollection(conn, cID):
+    '''given a collectionID, returns all the media located within that collection'''
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''select title, mediaID, rating, review, moodTag, genreTag, audienceTag from media inner join mediaInCollections 
+        using (mediaID) where collectionID = %s;''',
+        [cID])
+    return curs.fetchall()
+
+def getMediaCreatorInCollection(conn, cID):
+    '''given a collectionID, returns all media with a creator in that collection'''
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''select title, releaseYear, type, media.mediaID, rating, review, moodTag, genreTag, audienceTag, name, media.pID
+                from mediaInCollections join media on mediaInCollections.mediaID = media.mediaID
+                join creator on creator.pID = media.pID
+                where collectionID = %s;''', [cID])
+    return curs.fetchall();
+
+def deleteCollection(conn, result):
+    '''given a collectionID, deletes that collection (available from user page)'''
+    curs = dbi.dict_cursor(conn)
+    curs.execute('delete from collections where collectionID=%s',
+        [result['collectionID']])
+    conn.commit()
+
+def deleteMediaFromCollection(conn, cID, result):
+    '''given a collectionID and mediaID, deletes that media from that collection'''
+    curs = dbi.dict_cursor(conn)
+    curs.execute('delete from mediaInCollections where collectionID=%s and mediaID=%s',
+        [cID, result['mediaID']])
+    conn.commit()
+
+def updateMediaFromCollection(conn, cID, result):
+    '''given a collectionID and result, updates the media from the collection'''
+    # is there a more succinct way to change these values to None?
+    resultA = {}
+    for kind in ['rating', 'review', 'mood', 'genre', 'audience']:
+        if result[kind] == '':
+            resultA[kind] = None
+        else: resultA[kind] = result[kind]
+
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''update mediaInCollections set rating=%s, review=%s, moodTag=%s, 
+        genreTag=%s, audienceTag=%s where collectionID=%s and mediaID=%s''',
+        [resultA['rating'], resultA['review'], resultA['mood'], resultA['genre'], 
+         resultA['audience'], cID, result['mediaID']])
+    conn.commit()
+
+def insertInCollection (conn, mediaID, cID, rating, review, moodTag, genreTag, audienceTag):
+    '''given collectionID and all form data about media, inserts that media into the collection'''
+    curs = dbi.dict_cursor(conn)
+    curs.execute('''insert into mediaInCollections(mediaID, collectionID, rating, review, moodTag, genreTag, audienceTag)
+        values (%s, %s, %s, %s, %s, %s, %s)''',
+        [mediaID, cID, rating, review, moodTag, genreTag, audienceTag])
+    conn.commit()
+use goodtime_db;
+
+-- populating media table to have starter data
+
+insert into media(title, releaseYear, type)
+values ('Pride & Prejudice', 2005, 'movie');
+
+insert into media(title, releaseYear, type)
+values ('A Sun', 2019, 'movie');
+
+insert into media(title, releaseYear, type)
+values ('Hades', 2018, 'game');
+
+insert into media(title, releaseYear, type)
+values ('Chicory: A Colorful Tale', 2021, 'game');
+
+insert into media(title, releaseYear, type)
+values ('Cloud Atlas', 2004, 'book');
+
+insert into media(title, releaseYear, type)
+values ('The Lightning Thief', 2005, 'book');
+
+insert into media(title, releaseYear, type)
+values ('The Sandman', 2022, 'tv');
+
+insert into media(title, releaseYear, type)
+values ('Squid Game', 2021, 'tv');
+
+insert into media(title, releaseYear, type)
+values ('Animal Farm', 2022, 'music');
+
+insert into media(title, releaseYear, type)
+values ('Dream Girl Evil', 2022, 'music');
+
+
+-- populating user table with example users
+
+insert into user(name, username, password)
+values ('Rik Sampson', 'es1', '123');
+
+insert into user(name, username, password)
+values ('Audrey Liang', 'al118', '123');
+
+insert into user(name, username, password)
+values ('Catherine Wang', 'cw4', '123');
+
+--populating creator table with directors from wmdb
+insert into creator(pID, name)
+select null, name from wmdb.person;
+
+--populating media table with movies from the wmdb
+insert into media(title, releaseYear)
+select title, `release` from wmdb.movie;
+update media set type = 'movie' where mediaID > 40;
+
+
+<!doctype html>
+    <html lang='en'>
+    <head>
+        <meta charset='utf-8'>
+        <meta name=author content="GoodTimes">
+        {% block headstuff %}
+        <title>{{title}}</title>
+        {% endblock %}
+        <link rel="stylesheet" type="text/css" 
+              href="{{ url_for('static', filename='style.css') }}">
+    </head>
+
+    <nav>
+        <a href="{{ url_for('user', username=session['username']) }}">My User Page</a>
+        <a href="{{ url_for('search') }}">Search Page</a> 
+        <a href="{{ url_for('createCollection') }}">Create a Collection</a> 
+        <a href="{{ url_for('collectionPage', cID=3) }}">Collection Page, ID 3</a>
+        <a href="{{ url_for('insert') }}">Insert New Media</a>
+        <a href="{{ url_for('logout') }}">Log Out</a>
+    </nav>
+
+    <body>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flashMessages">
+                {% for error in messages %}
+                <p>{{error}}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}
+        {% endblock %}
+    </body>
+</html>{% extends "base.html" %}
+
+{% block content %}
+    <h1>{{collectionName}}</h1>
+
+    <p>Here is a list of all media in this collection:</p>   
+    <table>
+        <tr>
+            <th>Title</th>
+            <th>Media Type</th>
+            <th>Released</th>
+            <!--<th>Media ID</th>-->
+            <th>Mood</th>
+            <th>Genre</th>
+            <th>Audience</th>
+            <th>Creator</th>
+            <th>Rating</th>
+            <th>Review</th>
+        </tr>
+        {% for media in mediaInCollection %}
+        <tr>
+            <td>{{media.title}}</td>
+            <td>{{media.type}}</td>
+            <td>{{media.releaseYear}}</td>
+            <!--<td>{{media.mediaID}}</td>-->
+            <td>{{media.moodTag}}</td>
+            <td>{{media.genreTag}}</td>
+            <td>{{media.audienceTag}}</td>
+            <td>{{media.name}}</td>
+            <td>{{media.rating}}</td>
+            <td>{{media.review}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <hr>
+    <!-- Update Media -->
+    <form method = "post" action = "{{url_for('collectionPage', cID = collectionID)}}">
+        <label for="updateMedia">Media to Update:</label>
+        <select name = "mediaID" id="updateMedia">
+            {% for media in mediaInCollection%}
+            <option value="{{media.mediaID}}">{{media.title}}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <label for="mood">Mood:
+            <select name="mood" id="mood">
+                <option value="">Choose One</option>
+                <option value="happy">Happy</option>
+                <option value="sad">Sad</option>
+                <option value="angry">Angry</option>
+                <option value="calm">Calm</option>
+            </select>
+        </label>
+        <br>
+        <label for="genre">Genre:
+            <select name="genre" id="genre">
+                <option value="">Choose One</option>
+                <option value="action">Action</option>
+                <option value="comedy">Comedy</option>
+                <option value="romance">Romance</option>
+            </select>
+        </label>
+        <br>
+        <label for="audience">Audience:
+            <select name="audience" id="genre">
+                <option value="">Choose One</option>
+                <option value="family">Family</option>
+                <option value="significant other">Significant Other</option>
+                <option value="children">Children</option>
+                <option value="friends">Friends</option>
+            </select>
+        </label>
+        <br>
+        <label for="rating">Rating:
+            <input type="number" id="rating" name="rating" min="0" max="5">
+        </label>
+        <br>
+        <label for="review">Review:
+            <input type="text" id="review" name="review">
+        </label>
+        <br>
+        <!--
+        <label for="creator">Creator:
+            <select name="creator" id="creator">
+                {% for media in mediaInCollection%}
+                <option value="{{media.name}}">{{media.name}}</option>
+                {% endfor %}
+                <option value="other">Other</option>
+            </select>
+        </label>
+        -->
+        <p><input type="submit" name="submit" value="update media"></p>
+    </form>
+
+    <!-- Delete Media -->
+    <form method = "post" action = "{{url_for('collectionPage', cID = collectionID)}}">
+        <label for="deleteMedia">Delete Media From Collection:</label>
+        <select name = "mediaID" id="deleteMedia">
+            {% for media in mediaInCollection%}
+            <option value="{{media.mediaID}}">{{media.title}}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" name="submit" value="delete media">
+        <p><input type="submit" name="submit" value="back to user page"></p>
+    </form>
+{% endblock %}{% extends "base.html" %}
+
+{% block content %}
+    <h1>Create a new collection here:</h1>
+    <form method="post" action="{{url_for('createCollection')}}">
+        <label for="collectionName">Collection Name:
+            <input id="collectionName" name="collectionName" type="text" required>
+        </label>
+            
+        <input type="submit" value="Create">
+
+    </form>    
+{% endblock %}{% extends "base.html" %}
+
+{% block content %}
+<h1 class="align-center">Welcome to GoodTimes!</h1>
+
+<div class="flex-row flex-center">
+    <div class="align-right">
+        <h2>Join</h2>
+        <form method="post" action="{{ url_for('join')}}">
+            <label for="username">Username:
+                <input id="username" type="text" name="username">
+            </label>
+            <br>
+            <label for="password1">Password:
+                <input id="password1" type="text" name="password1">
+            </label>
+            <br>
+            <label for="password2">Confirm password:
+                <input id="password2" type="text" name="password2">
+            </label>
+            <br>
+            <input type="submit" value="Create account">
+        </form>
+    </div>
+    <div class="vertical-line"></div>
+    <div>
+        <h2>Login</h2>
+        <form method="post" action="{{ url_for('login')}}">
+            <label for="username">Username:
+                <input id="username" type="text" name="username">
+            </label>
+            <br>
+            <label for="password">Password:
+                <input id="password" type="text" name="password">
+            </label>
+            <br>
+            <input type="submit" value="Login">
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+{% extends "base.html" %}
+
+{% block content%}
+    <h1>Insert Media</h1>
+    <form method="post" action="{{ url_for('insert') }}">
+        <label for="media_title">Media Title:
+            <input id="media_title" type="text" name="media_title">
+        </label>
+        <br>
+        <label for="media_release">Media Release Year:
+            <input id="media_release" type="text" name="media_release">
+        </label>
+        <br>
+        <label for="media_type">Media Type:
+            <input id="media_type" type="text" name="media_type">
+        </label>
+        <br>
+        <label for="media_creator">Media Creator:
+            <select name="media_creator" id="media_creator">
+                <option value="other">Other</option>
+                {% for creator in allCreators%}
+                    <option value="{{creator.pID}}">{{creator.name}}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <br>
+        <br>
+        <input class="button" type="submit" value="Insert Movie">
+    </form>
+ {% endblock%} 
+
+{% extends "base.html" %}
+{% block content %}
+        {% for media in media_info %}
+            <h1 class = "title">{{media.mediaID}}: {{media.title}}</h1>
+                
+            <p>{{media.title}} ({{media.type}}), released in {{media.releaseYear}}.</p>
+        {% endfor %}
+
+            <form method = "post", action="{{ url_for('media_info', mediaID=mediaID)}}">
+                <br>
+                <label for="media-add">MediaID
+                    <input type="text" id="media-add" name="media-add" value="{{mediaID}}">
+                </label>
+
+                <label for="addMedia">Add Media to Collection:
+                    <input type="text" id="collection-add" name="collection-add">
+                </label>
+
+                <label for="rating">Rating:
+                    <input type="number" id="rating" name="rating" min="0" max="5">
+                </label>
+                <br>
+                <label for="review">Review:
+                    <input type="text" id="review" name="review">
+                </label>
+                <br>
+                <label for="mood">Mood:
+                    <select name="mood" id="mood">
+                        <option value=""></option>
+                        <option value="happy">Happy</option>
+                        <option value="sad">Sad</option>
+                        <option value="angry">Angry</option>
+                        <option value="calm">Calm</option>
+                    </select>
+                </label>
+                <br>
+                <label for="genre">Genre:
+                    <select name="genre" id="genre">
+                        <option value=""></option>
+                        <option value="action">Action</option>
+                        <option value="comedy">Comedy</option>
+                        <option value="romance">Romance</option>
+                        <option value="horror">Horror</option>
+                    </select>
+                </label>
+                <br>
+                <label for="audience">Audience:
+                    <select name="audience" id="audience">
+                        <option value=""></option>
+                        <option value="family">Family</option>
+                        <option value="significant other">Significant Other</option>
+                        <option value="children">Children</option>
+                        <option value="friends">Friends</option>
+                    </select>
+                </label>
+                <input type="submit" name="submit" value="add media">
+            </form>
+            
+{% endblock %}{% extends "base.html" %}
+{% block content %}
+<form method="post" action="{{ url_for('search') }}"> 
+    <label for="query">search:
+        <input id="query" name="query" type="text" required>
+    </label>
+    <label for="kind">by:
+        <select id="kind" name="kind" required>
+            <option value="">choose one</option>
+            <option value="username">username</option>
+            <option value="media">media type</option>                
+        </select>
+    </label>
+
+    <label for="mood">by:
+        <select id="mood" name="mood">
+            <option value=""></option>
+            <option value="happy">happy</option>
+            <option value="sad">sad</option>     
+            <option value="angry">angry</option>  
+            <option value="calm">calm</option>             
+        </select>
+    </label>
+
+    <label for="genre">by:
+        <select id="genre" name="genre">
+            <option value=""></option>
+            <option value="action">action</option>
+            <option value="comedy">comedy</option>     
+            <option value="romance">romance</option>  
+            <option value="horror">horror</option>             
+        </select>
+    </label>
+
+    <label for="audience">by:
+        <select id="audience" name="audience">
+            <option value=""></option>
+            <option value="family">family</option>
+            <option value="significant other">significant other</option>     
+            <option value="children">children</option>  
+            <option value="friends">friends</option>             
+        </select>
+    </label>
+    
+    <label>search 
+        <input type="submit">
+    </label>
+</form> 
+
+<p class="description"> Explore all users:</p>
+<article>
+    <ol>
+        {% for user in all_users %}
+            <li>{{user.name}} ({{user.username}}, {{user.uID}})</li>
+        {% endfor %}
+    </ol>
+</article>
+
+<p class="description"> Explore all media:</p>
+<article>
+    <ol>
+        {% for media in all_media %}
+            <li>{{media.title}} ({{media.releaseYear}}, {{media.type}}, {{media.name}})</li>
+        {% endfor %}
+    </ol>
+</article>
+{% endblock %}{% extends "base.html" %}
+
+{# replaces default headstuff block #}
+{% block headstuff %}
+<title>Search Results</title>
+{% endblock %}
+
+{# replaces default content block #}
+{% block content %}
+    <!-- {# If length of search results is 0, displays that no person/movie 
+        was in the database. Else, displays the search results matching 
+        the query in a list with the appropriate hyperlinks #}
+    {% if length == 0 %}
+    <h1>Not Found</h1>
+    <p>Sorry, no {{kind}} results were found</p>
+
+    {% else %} -->
+        {% if kind == "username"%}
+        <p class="description"> Users matching "{{query}}":</p>
+        <article>
+            <ol>
+                {% for user in search_results %}
+                    <li>{{user.name}} ({{user.username}})</li>
+                {% endfor %}
+            </ol>
+        </article>
+
+        {% else %}
+            <p class="description">Media matching {{query}}:</p>
+            <article>
+                <ol>
+                    {% for media in search_results %}
+                    <li><a href={{url_for('media_info', mediaID=media.mediaID)}}>{{media.title}} ({{media.releaseYear}}, {{media.type}})</a></li>
+                {% endfor %}
+                </ol>
+            </article>
+        {% endif %}
+    {% endif %}
+{% endblock %}
+{% extends "base.html" %}
+{% block content%}
+
+    <h1>Update Ratings, Reviews, and Tags</h1>
+    <form method="post" action="{{ url_for('update', mediaID=mediaID) }}">
+        <label for="media_rating">Title:
+            <select name = "media_rating" id="ratingMedia">
+                <option id="vbad_rating" name="media_rating" value="1">1</option>
+                <option id="bad_rating" name="media_rating" value="2">2</option>
+                <option id="mid_rating" name="media_rating" value="3">3</option>
+                <option id="good_rating" name="media_rating" value="4">4</option>
+                <option id="vgood_rating" name="media_rating" value="5">5</option>
+                {% endfor %}
+            </select>
+        </label>
+        <br>
+        <label for="media_review">Media Review:
+            <input id="media_review" type="text" name="media_review" value="{{review}}">
+        </label>
+        <br>
+        <label for="moodTag">Title:
+            <select name = "moodTag" id="moodTag">
+                <option id="happy" name="moodTag" value="happy">Happy</option>
+                <option id="sad" name="moodTag" value="sad">Sad</option>
+                <option id="angry" name="moodTag" value="angry">Angry</option>
+                <option id="calm" name="moodTag" value="calm">Calm</option>
+                {% endfor %}
+            </select>
+        </label>
+        <br>
+        <label for="genreTag">Title:
+            <select name = "genreTag" id="genreTag">
+                <option id="action" name="genreTag" value="action">Action</option>
+                <option id="comedy" name="genreTag" value="comedy">Comedy</option>
+                <option id="romance" name="genreTag" value="romance">Romance</option>
+                {% endfor %}
+            </select>
+        </label>
+        <br>
+        <label for="audienceTag">Title:
+            <select name = "audienceTag" id="audienceTag">
+                <option id="family" name="audienceTag" value="family">Family</option>
+                <option id="so" name="audienceTag" value="significant other">Significant Other</option>
+                <option id="children" name="audienceTag" value="children">Children</option>
+                {% endfor %}
+            </select>
+        </label>
+        <br>
+        <br>
+        <input class="button" type="submit" value="update" name="submit">
+        <input class="button" type="submit" value="delete" name="submit">
+    </form>
+  
+{% endblock %}{% extends "base.html" %}
+
+{% block content %}
+    <h1>{{username}}'s Profile</h1>
+    <p>Here is a list of all collections:</p>  
+    <div class="collection-container">
+        {% for collection in collections %}
+        <a href="{{ url_for('collectionPage', cID=collection.collectionID)}}">
+            <div class="collection-box">
+                <p>{{collection.name}}</p>
+                <p>(with ID: {{collection.collectionID}})</p>
+            </div>
+        </a>
+        {% endfor %}
+        <!-- Create New Collection currently has no functionality -->
+        <a>
+            <div class="collection-box">
+                <p>Create New Collection</p>
+                <p>(+)</p>
+            </div>
+        </a>
+    </div>
+    <!-- {% for user in search_results %}
+                <li>{{user.name}} ({{user.username}})</li>
+            {% endfor %} -->
+
+    <form method = "post" action = "{{url_for('user', username=username)}}">
+        <label for="viewForm">View Collection:</label>
+        <select name = "collectionID" id="viewForm">
+            {% for collection in collections%}
+            <option id="collectionID" name="collectionID" value="{{collection.collectionID}}">{{collection.name}}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" name="submit" value="view">
+    </form>
+
+    <form method = "post" action = "{{url_for('user', username=username)}}">
+        <label for="deleteForm">Delete Collection:</label>
+        <select name = "collectionID" id="deleteForm">
+            {% for collection in collections%}
+            <option id="collectionID" name="collectionID" value="{{collection.collectionID}}">{{collection.name}}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" name="submit" value="delete">
+        <p>
+            <input type="submit" name="submit" value="create collection">
+        </p>
+    </form>
+{% endblock %}.align-right {
+    text-align: right;
+}
+
+.align-center {
+    text-align: center;
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+}
+
+.flex-center {
+    justify-content: center;
+}
+
+.vertical-line {
+    border-left: 3px solid black;
+    margin: 0 20px;
+}
+
+.collection-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px 10px;
+    margin-bottom: 10px;
+}
+
+.collection-box {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    /* box dimensions */
+    width: 150px;
+    height: 150px;
+    padding: 10px;
+    background-color: rgb(204, 204, 204);
+    border-radius: 5%;
+}

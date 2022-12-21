@@ -56,7 +56,7 @@ def getAllUsers(conn):
     return curs.fetchall()
 
 def getAllMedia(conn):
-    '''returns mediaID, title, releaseYear, type, pID of all media'''
+    '''returns mediaID, title, releaseYear, type, pID (list of dictionaries) of all media'''
     curs = dbi.dict_cursor(conn)
     curs.execute('select * from media')
     return curs.fetchall()
@@ -69,7 +69,7 @@ def getAllMediaAndCreator(conn):
                     order by title''')
     return curs.fetchall()
 
-# inserts data for new collection into collections table and returns new ID
+
 def insertCollection(conn, result, uID):
     '''given collection name and current uID, creates a new collection in the collections table and
     returns the collectionID of the newly created collection'''
@@ -165,7 +165,7 @@ def getMediaCreatorInCollection(conn, cID):
                 from mediaInCollections join media on mediaInCollections.mediaID = media.mediaID
                 join creator on creator.pID = media.pID
                 where collectionID = %s;''', [cID])
-    return curs.fetchall();
+    return curs.fetchall()
 
 def deleteCollection(conn, result):
     '''given a collectionID, deletes that collection (available from user page)'''

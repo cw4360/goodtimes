@@ -1,9 +1,9 @@
 {% extends "explore.html" %}
 
 {% block content %}
-<h1>{{media_info.title}}</h1>
+<h1 class="title">{{media_info.title}}</h1>
 <hr>
-<h3>{{media_info.title}} ({{media_info.type}}), released in {{media_info.releaseYear}}.</h3>
+<h3 class="details">{{media_info.title}} ({{media_info.type}}), released in {{media_info.releaseYear}}.</h3>
 <hr>
 <br>
 <form method = "post", action="{{ url_for('media_info', mediaID=mediaID)}}">
@@ -62,7 +62,7 @@
 <br>
 <hr>
 <br>
-<h3>See what other users thought:</h3>
+<h3 class="details">See what other users thought about this {{media_info.type}}:</h3>
 <table id="details">
     <tr>
         <th>Rating</th>
@@ -76,8 +76,8 @@
         <td class="rating">{{details.rating}}</td>
         <td class="review">{{details.review}}</td>
         <td class="moodtag">{{details.moodTag}}</td>
-        <td class="">{{details.genreTag}}</td>
-        <td class="">{{details.audienceTag}}</td>
+        <td class="genretag">{{details.genreTag}}</td>
+        <td class="audiencetag">{{details.audienceTag}}</td>
     </tr>
     {% endfor %}
 </table>
