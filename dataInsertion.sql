@@ -49,8 +49,6 @@ insert into creator(pID, name)
 select nm, name from wmdb.person where nm >20;
 
 --populating media table with movies from the wmdb
-insert into media(mediaID, title, releaseYear)
-select tt, title, `release` from wmdb.movie;
+insert into media(mediaID, title, releaseYear, pID)
+select tt, title, `release`, director from wmdb.movie where director!=0 and tt!=1454468;
 update media set type = 'movie' where mediaID > 40;
-
-

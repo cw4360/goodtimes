@@ -282,7 +282,7 @@ def insert():
             media_release = request.form['media_release']
             media_type = request.form['media_type']
             media_pID = request.form['media_creator']
-
+            queries.getMediaInCollection(conn, )
             # detect incomplete form
             if media_title == "" or media_release == "" or media_type == "" or media_pID =="":
                 return render_template('insert.html', msg="Form is not complete, fill in missing info")
@@ -311,23 +311,24 @@ def media_info(mediaID):
         if request.method == "POST":
             if request.form['submit'] == 'add media':
                 mediaID = request.form['media-add']
-                # uID=session['uid']
                 cID = request.form['addMedia']
+                collection = queries.getMediaInCollection(conn, cID)
                 rating = request.form['rating']
                 review = request.form['review']
                 moodTag = request.form['mood']
                 genreTag = request.form['genre']
                 audienceTag = request.form['audience']
-                queries.insertInCollection(conn, mediaID, cID, rating, review, moodTag, genreTag, audienceTag)
-                # updating the media in the collection
-                #mediaCollection = queries.getMediaInCollection(conn, cID)
-                return render_template('mediaPage.html', media_info= media_info, mediaID=mediaID, 
-                uid=uid, collections=collections, rated=rated)
-            else:
-                return render_template('mediaPage.html',  
-                    media_info= media_info, mediaID=media['mediaID'], uid=uid, collections=collections, rated=rated
-                    )
+                print(collection)
+                #fix this to be a for loop? check that media is not already in collection
+                if mediaID not in collection:
+                    queries.insertInCollection(conn, mediaID, cID, rating, review, moodTag, genreTag, audienceTag)
+                    # updating the media in the collection
+                    #mediaCollection = queries.getMediaInCollection(conn, cID)
+                    flash("Media successfully inserted into collection!")
+                    return render_template('mediaPage.html', media_info= media_info, mediaID=mediaID, 
+                    uid=uid, collections=collections, rated=rated)
         else:
+            flash('Media already in collection!')
             return render_template('mediaPage.html',  
                     media_info= media_info, mediaID=mediaID, uid=uid, collections=collections, rated=rated
                     )
