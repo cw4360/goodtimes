@@ -10,13 +10,12 @@
         <link rel="preconnect" href="https://fonts.googleapis.com"> 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-        <link rel="stylesheet" type="text/css" 
-              href="{{ url_for('static', filename='style.css') }}">
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
     </head>
 
     <body>
         <div style="position: relative; width: 100%;">
-            <img src="../static/images/header-gradient.svg">
+            <img alt="header gradient" src="../static/images/header-gradient.svg">
             <div class="content-block">
                 {% block nav %}
                 {% endblock %}
@@ -38,11 +37,5 @@
                 {% endblock %}
             </div>
         </div>
-        <!-- <img style="position: relative" src="../static/images/footer-gradient.svg"> -->
     </body>
-    <footer>
-        {% block footer %}
-        {% endblock %}
-        <!-- <img src="../static/images/footer-gradient.svg"> -->
-    </footer>
 </html>
