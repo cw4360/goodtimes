@@ -68,7 +68,8 @@ def join():
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
     """ Given the username and password of an existing GoodTimes user, 
-    logs the user into their account and renders their user page."""
+    logs the user into their account and renders their user page.
+    Requires user to to supply their username and password. """
     if request.method == 'GET':
         # redirect user to index instead of using this endpoint
         return redirect(url_for('index'))
@@ -131,13 +132,14 @@ def user(username):
         print("session:", session)
         conn = dbi.connect()
         uid = session['uid'] ## get current user's UID
-        userInfo = queries.getUserInfo(conn, username)
+        # get given user's name, username, and uid
+        userInfo = queries.getUserInfo(conn, username) 
         collections = queries.getAllCollections1(conn, username)
 
-        if uid != userInfo['uid']: ## user is viewing another user's profile
-            return render_template('userPage.html', title="My Profile", isUser=False, 
-                userInfo=userInfo, collections=collections)
-        else: ## user is viewing their own profile, and has access to manage profile and collections
+        if uid != userInfo['uid']: # if user is viewing another user's profile
+            return render_template('userPage.html', title="My Profile", 
+                isUser=False, userInfo=userInfo, collections=collections)
+        else: # if user is viewing their own profile, and has access to manage profile and collections
             if request.method == "POST":
                 if request.form['submit'] == 'update name':
                     queries.updateName(conn, uid, request.form['name'])
@@ -157,11 +159,11 @@ def user(username):
                     # this updates collections so the page rerenders correctly
                     collections = queries.getAllCollections(conn, uid)
 
-                return render_template('userPage.html', title="My Profile", isUser=True, 
-                    userInfo=userInfo, collections=collections)
+                return render_template('userPage.html', title="My Profile", 
+                    isUser=True, userInfo=userInfo, collections=collections)
             else:
-                return render_template('userPage.html', title="My Profile", isUser=True, 
-                    userInfo=userInfo, collections=collections)
+                return render_template('userPage.html', title="My Profile", 
+                    isUser=True, userInfo=userInfo, collections=collections)
 
 @app.route('/createCollection/', methods = ["GET", "POST"])
 def createCollection():
