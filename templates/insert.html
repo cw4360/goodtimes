@@ -30,8 +30,42 @@
             </select>
         </label>
         <br>
+        <label for="media_creator2">Media Creator2:
+            <div id="creatorDropdown" class="dropdownContent">
+                <input type="text" placeholder="Filter dropdown" onkeyup="filterDropdown()" id="input">
+                <select name="media_creator2" id="media_creator2">
+                    <option value="">Choose Creator</option>
+                    {% for creator in allCreators%}
+                        <option value="{{creator.pID}}">{{creator.name}}</option>
+                    {% endfor %}
+                </select>
+                <button>Add New Creator</button>
+            </div>
+        </label>
+        <br>
         <br>
         <input class="button" type="submit" value="Insert Movie">
     </form>
+
+    <script>
+        function filterDropdown() {
+            var input, filter, div, elements;
+            input = document.getElementById("input");
+            filter = input.value.toUpperCase();
+            div = document.getElementById("creatorDropdown");
+            elements = div.getElementsByTagName("option")
+
+            for (i = 0; i < elements.length; i++) {
+                txtValue = elements[i].textContent || elements[i].innerText;
+
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    elements[i].style.display = "";
+                } 
+                else {
+                    elements[i].style.display = "none";
+                }
+            }
+        }
+    </script>
  {% endblock%} 
 

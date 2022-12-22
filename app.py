@@ -285,10 +285,10 @@ def insert():
             media_release = request.form['media_release']
             media_type = request.form['media_type']
             media_pID = request.form['media_creator']
-            queries.getMediaInCollection(conn, )
+            #queries.getMediaInCollection(conn, ) #where is this used?
             # detect incomplete form
             if media_title == "" or media_release == "" or media_type == "" or media_pID =="":
-                return render_template('insert.html', title="Insert New Media", msg="Form is not complete, fill in missing info")
+                return render_template('insert.html', title="Insert New Media", msg="Form is not complete, fill in missing info", allCreators=creators)
             # if media id doesn't exist
             else:
                 # if no media creator was selected, change value to NULL
@@ -297,7 +297,8 @@ def insert():
                 # insert the media
                 queries.insert_media(conn, media_title, media_release, media_type, media_pID)
                 flash('Media successfully inserted!')
-                return render_template('insert.html', title="Insert New Media", media_title=media_title, media_release=media_release, media_type=media_type)
+                return render_template('insert.html', title="Insert New Media", media_title=media_title, media_release=media_release, 
+                    media_type=media_type, allCreators=creators)
             
 @app.route('/media_details/<mediaID>', methods = ["GET", "POST"])
 def media_info(mediaID):
@@ -324,11 +325,13 @@ def media_info(mediaID):
                 if not exists:
                     queries.insertInCollection(conn, mediaID, cID, rating, review, moodTag, genreTag, audienceTag)
                     # updating the media in the collection
-                    #mediaCollection = queries.getMediaInCollection(conn, cID)
+                    mediaCollection = queries.getMediaInCollection(conn, cID)
                     flash("Media successfully inserted into collection!")
-                    return render_template('mediaPage.html', title="Media Detail Page",
-                    media_info= media_info, mediaID=mediaID, 
-                    uid=uid, collections=collections, rated=rated)
+                    # would we want to render the collection page? not sure
+                    return redirect(url_for('collectionPage',  title="View Collection", cID= cID)) 
+                    #return render_template('mediaPage.html', title="Media Detail Page",
+                    #media_info= media_info, mediaID=mediaID, 
+                    #uid=uid, collections=collections, rated=rated)
                 else:
                     flash("The media you tried to insert is already in the specified collection!")
                     return redirect(url_for('collectionPage',  title="View Collection", cID= cID))
