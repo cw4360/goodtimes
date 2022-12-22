@@ -16,13 +16,13 @@
         {% if kind == "username"%}
         <h3 class="description"> Users matching "{{query}}"
             {% if mood %}
-            <span>, mood:"{{mood}}",</span>
+            <span class="mood tag">, mood:"{{mood}}",</span>
             {% endif %}
             {% if genre %}
-            <span>, genre:"{{genre}}",</span>
+            <span class="genre tag">, genre:"{{genre}}",</span>
             {% endif %}
             {% if audience %}
-            <span>, audience:"{{audience}}"</span>
+            <span class="audience tag">, audience:"{{audience}}"</span>
             {% endif %}:
         </h3>
         <div class="user-container">
@@ -36,7 +36,7 @@
         </div>
 
         {% else %}
-        <h3 class="description">Media matching "{{query}}":</h3>
+        <h3 class="description">Media matching "{{query}}", mood: {{mood}}, genre: {{genre}}, audience: {{audience}}</h3>
         <div class="media-container">
             {% for media in search_results %}
             <a href="{{ url_for('media_info', mediaID=media.mediaID)}}">
@@ -55,8 +55,7 @@
                         {% elif media.type == 'book' %}
                             <span class="book tag">{{media.type}}</span>
                         {% endif %}
-                        <!-- No creator currently found through do_search -->
-                        <!-- <span class="creator tag">{{media.name}}</span> -->
+                        <span class="creator tag">{{media.name}}</span>
                     </p>
                 </div>
             </a>

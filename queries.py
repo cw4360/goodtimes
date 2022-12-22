@@ -1,40 +1,48 @@
 import cs304dbi as dbi
 
 def do_search(conn, query, kind, mood, genre, audience):
-    """does a search on the media depending on the typed query, kind of search (media or user), as well as any mood, genre, or audience tags"""
+    """does a search on the media depending on the typed query, kind of search (media or user), 
+    as well as any mood, genre, or audience tags"""
     curs = dbi.dict_cursor(conn)
     if kind == "username": 
         curs.execute('''select * from user where username like %s or name like %s''', 
         ["%"+query+"%", "%"+query+"%"])
     elif kind == "media" and mood == "" and genre == "" and audience == "": 
-        curs.execute('''select * from media where title like %s''', 
+        curs.execute('''select * from media inner join creator on media.pID=creator.pID where title like %s''', 
         ["%"+query+"%"])
     elif kind == "media" and mood != "" and genre == "" and audience == "":
-        curs.execute('''select * from media inner join mediaInCollections on media.mediaID=mediaInCollections.mediaID 
+        curs.execute('''select * from media inner join creator on (media.pID=creator.pID) inner join mediaInCollections 
+        on (media.mediaID=mediaInCollections.mediaID) 
         where title like %s and moodTag=%s''', 
         ["%"+query+"%", mood])
     elif kind == "media" and mood == "" and genre != "" and audience == "":
-        curs.execute('''select * from media inner join mediaInCollections on media.mediaID=mediaInCollections.mediaID 
+        curs.execute('''select * from media inner join creator on (media.pID=creator.pID) inner join mediaInCollections 
+        on (media.mediaID=mediaInCollections.mediaID) 
         where title like %s and genreTag=%s''', 
         ["%"+query+"%", genre])
     elif kind == "media" and mood == "" and genre == "" and audience != "":
-        curs.execute('''select * from media inner join mediaInCollections on media.mediaID=mediaInCollections.mediaID 
+        curs.execute('''select * from media inner join creator on (media.pID=creator.pID) inner join mediaInCollections 
+        on (media.mediaID=mediaInCollections.mediaID) 
         where title like %s and audienceTag=%s''', 
         ["%"+query+"%", audience])
     elif kind == "media" and mood != "" and genre != "" and audience == "":
-        curs.execute('''select * from media inner join mediaInCollections on media.mediaID=mediaInCollections.mediaID 
+        curs.execute('''select * from media inner join creator on (media.pID=creator.pID) inner join mediaInCollections 
+        on (media.mediaID=mediaInCollections.mediaID) 
         where title like %s and moodTag=%s and genreTag=%s''', 
         ["%"+query+"%", mood, genre])
     elif kind == "media" and mood != "" and genre == "" and audience != "":
-        curs.execute('''select * from media inner join mediaInCollections on media.mediaID=mediaInCollections.mediaID 
+        curs.execute('''select * from media inner join creator on (media.pID=creator.pID) inner join mediaInCollections 
+        on (media.mediaID=mediaInCollections.mediaID) 
         where title like %s and moodTag=%s and audienceTag=%s''', 
         ["%"+query+"%", mood, audience])
     elif kind == "media" and mood == "" and genre != "" and audience != "":
-        curs.execute('''select * from media inner join mediaInCollections on media.mediaID=mediaInCollections.mediaID 
+        curs.execute('''select * from media inner join creator on (media.pID=creator.pID) inner join mediaInCollections 
+        on (media.mediaID=mediaInCollections.mediaID) 
         where title like %s and genreTag=%s and audienceTag=%s''', 
         ["%"+query+"%", genre, audience])
     elif kind == "media" and mood != "" and genre != "" and audience != "":
-        curs.execute('''select * from media inner join mediaInCollections on media.mediaID=mediaInCollections.mediaID 
+        curs.execute('''select * from media inner join creator on (media.pID=creator.pID) inner join mediaInCollections 
+        on (media.mediaID=mediaInCollections.mediaID) 
         where title like %s and moodTag=%s and genreTag=%s and audienceTag=%s''', 
         ["%"+query+"%", mood, genre, audience])
         #select the mediaID rows from mediaInCollectiosn that corresponds to mood, genre and audience
@@ -118,9 +126,9 @@ def getCreator(conn, pID): # may be deleted later
     return curs.fetchone()
 
 def get_media(conn, mediaID):
-    '''given a mediaID, returns the mediaID, title, releaseYear, type, and pID for that particular media'''
+    '''given a mediaID, returns the mediaID, title, releaseYear, type, pID, and creator name for that particular media'''
     curs = dbi.dict_cursor(conn)
-    curs.execute('''select * from media where mediaID=%s;''',
+    curs.execute('''select * from media inner join creator on media.pID=creator.pID where mediaID=%s;''',
         [mediaID])
     return curs.fetchone()
 

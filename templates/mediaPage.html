@@ -1,9 +1,10 @@
 {% extends "explore.html" %}
 
 {% block content %}
-<h1 class="title">{{media_info.title}}</h1>
+<h1 class="title">{{media_info.title}} </h1>
 <hr>
 <h2 class="details">{{media_info.title}} ({{media_info.type}}), released in {{media_info.releaseYear}}.</h2>
+<h3 class = "details">Creator: {{media_info.name}}</h3>
 <hr>
 <br>
 <form method = "post", action="{{ url_for('media_info', mediaID=mediaID)}}">
