@@ -327,6 +327,8 @@ def media_info(mediaID):
     else:
         conn = dbi.connect()
         media_info = queries.get_media(conn, mediaID)
+        pID = media_info['pID']
+        creator_info = queries.getCreator(conn, pID)
         uid = session.get('uid')
         collections = queries.getAllCollections(conn, uid)
         rated = queries.getRatedMedia(conn, mediaID)
@@ -339,7 +341,6 @@ def media_info(mediaID):
                 moodTag = request.form['mood']
                 genreTag = request.form['genre']
                 audienceTag = request.form['audience']
-                #fix this to be a for loop? check that media is not already in collection
                 if not exists:
                     queries.insertInCollection(conn, mediaID, cID, rating, review, moodTag, genreTag, audienceTag)
                     # updating the media in the collection
@@ -356,7 +357,7 @@ def media_info(mediaID):
         else:
             return render_template('mediaPage.html', title="Media Detail Page",
                     media_info= media_info, mediaID=mediaID, 
-                    uid=uid, collections=collections, rated=rated)
+                    uid=uid, collections=collections, rated=rated, creator_info=creator_info)
 
 @app.before_first_request
 def init_db():

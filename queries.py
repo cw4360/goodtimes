@@ -126,9 +126,9 @@ def getCreator(conn, pID): # may be deleted later
     return curs.fetchone()
 
 def get_media(conn, mediaID):
-    '''given a mediaID, returns the mediaID, title, releaseYear, type, pID, and creator name for that particular media'''
+    '''given a mediaID, returns the mediaID, title, releaseYear, type for that particular media'''
     curs = dbi.dict_cursor(conn)
-    curs.execute('''select * from media inner join creator on media.pID=creator.pID where mediaID=%s;''',
+    curs.execute('''select * from media where mediaID=%s;''',
         [mediaID])
     return curs.fetchone()
 
