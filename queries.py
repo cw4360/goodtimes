@@ -56,6 +56,8 @@ def insertCreator(conn, creator_name):
                 values (%s)''', 
                 [creator_name])
    conn.commit()
+   curs.execute('select last_insert_id()')
+   return curs.fetchone()
 
 def getAllUsers(conn):
     '''returns uid, name, and username of all users'''
