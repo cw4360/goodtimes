@@ -3,6 +3,23 @@
 {% block content%}
     <h1>Insert Media</h1>
     <form method="post" action="{{ url_for('insert') }}">
+        <br>
+        <div id="creatorDropdown" class="dropdownContent">
+            <label for="media_creator">Media Creator:
+                <input type="text" placeholder="Filter dropdown" onkeyup="filterDropdown()" id="input" name="input">
+                <select name="media_creator" id="media_creator">
+                    <option value="">Choose Creator</option>
+                    {% for creator in allCreators%}
+                        <option value="{{creator.pID}}">{{creator.name}}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+        <br>
+        <label for="inputAdd">If the creator does not exist, add a creator here:</label>
+        <input type="text" placeholder="Creator to Add" id="inputAdd" name="inputAdd">
+        <input type="submit" name = "submit" value="Add New Creator">
+        <br>
         <label for="media_title">Media Title:
             <input id="media_title" type="text" name="media_title">
         </label>
@@ -20,22 +37,6 @@
                 <option value="music">music</option>
             </select>
         </label>
-        <br>
-        <div id="creatorDropdown" class="dropdownContent">
-            <label for="media_creator">Media Creator:
-                <input type="text" placeholder="Filter dropdown" onkeyup="filterDropdown()" id="input" name="input">
-                <select name="media_creator" id="media_creator">
-                    <option value="">Choose Creator</option>
-                    {% for creator in allCreators%}
-                        <option value="{{creator.pID}}">{{creator.name}}</option>
-                    {% endfor %}
-                </select>
-            </label>
-        </div>
-        <br>
-        <label for="inputAdd">If the creator does not exist, add a creator here:</label>
-        <input type="text" placeholder="Creator to Add" id="inputAdd" name="inputAdd">
-        <input type="submit" name = "submit" value="Add New Creator">
         <br>
         <br>
         <input type="submit" name = "submit" value="Insert Media">
@@ -62,4 +63,3 @@
         }
     </script>
  {% endblock%} 
-

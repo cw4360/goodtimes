@@ -289,10 +289,10 @@ def insert():
                 #return a new pID?
                 newPID = queries.insertCreator(conn, creatorName)
                 creators = queries.getAllCreators(conn) #update list of creators
-                flash("Creator successfully inserted!")
+                flash("Creator successfully inserted! Search again in the media creator dropdown.")
                 return render_template('insert.html', title="Insert New Media", allCreators=creators)
                 #reload dropdown w/o reloading page?
-            if request.form['submit'] == 'Insert Movie':
+            if request.form['submit'] == 'Insert Media':
                 media_title = request.form['media_title']
                 media_release = request.form['media_release']
                 media_type = request.form['media_type']
