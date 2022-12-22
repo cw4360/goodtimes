@@ -14,16 +14,10 @@
 
     {% else %} -->
         {% if kind == "username"%}
-        <h3 class="description"> Users matching "{{query}}"
-            {% if mood %}
-            <span class="mood tag">, mood:"{{mood}}",</span>
-            {% endif %}
-            {% if genre %}
-            <span class="genre tag">, genre:"{{genre}}",</span>
-            {% endif %}
-            {% if audience %}
-            <span class="audience tag">, audience:"{{audience}}"</span>
-            {% endif %}:
+        <h3 class="description"> Users matching "{{query}}", 
+            mood: "{{mood}}",
+            genre: "{{genre}}", 
+            audience: "{{audience}}":
         </h3>
         <div class="user-container">
             {% for user in search_results %}
@@ -36,7 +30,11 @@
         </div>
 
         {% else %}
-        <h3 class="description">Media matching "{{query}}", mood: {{mood}}, genre: {{genre}}, audience: {{audience}}</h3>
+        <h3 class="description">Media matching "{{query}}", 
+            mood: "{{mood}}",
+            genre: "{{genre}}", 
+            audience: "{{audience}}":
+        </h3>
         <div class="media-container">
             {% for media in search_results %}
             <a href="{{ url_for('media_info', mediaID=media.mediaID)}}">

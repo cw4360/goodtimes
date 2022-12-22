@@ -143,6 +143,7 @@ def user(username):
             if request.method == "POST":
                 if request.form['submit'] == 'update name':
                     queries.updateName(conn, uid, request.form['name'])
+                    # this updates userInfo so the page rerenders correctly
                     userInfo = queries.getUserInfo(conn, username)
 
                 if request.form['submit'] == 'create collection':
@@ -153,7 +154,7 @@ def user(username):
                     print(toView)
                     return redirect(url_for('collectionPage', cID = toView['collectionID']))
 
-                if request.form['submit'] == 'delete': #may need to update value to be more specific
+                if request.form['submit'] == 'delete': 
                     toDelete = request.form
                     queries.deleteCollection(conn, toDelete)
                     # this updates collections so the page rerenders correctly
@@ -190,14 +191,13 @@ def collectionPage(cID):
         return redirect(url_for('index', title="GoodTimes",))
     else:
         conn = dbi.connect()
-        uid = session['uid'] ## get current user's UID
+        uid = session['uid'] # get current user's UID
         collectionName = queries.getCollectionName(conn, cID)
         mediaCollection = queries.getMediaCreatorInCollection(conn, cID)
 
-        if not queries.isUsersCollection(conn, uid, cID):
+        if not queries.isUsersCollection(conn, uid, cID): # checks if collection belongs to user
             return render_template('collectionPage.html', title="View Collection", isUser=False,
                 collectionID = cID, collectionName=collectionName, mediaInCollection = mediaCollection)
-
         else:
             if request.method == "GET":
                 return render_template('collectionPage.html', title="View Collection", isUser=True,
@@ -205,27 +205,24 @@ def collectionPage(cID):
             if request.method == "POST":
                 if request.form['submit'] == 'back to user page':
                     return redirect(url_for('user', title="My Profile", username=session['username']))
+                # redirects user to explore page
                 if request.form['submit'] == 'add media':
-                    toAdd = request.form
+                    # toAdd = request.form
                     return redirect(url_for('search', title="Explore",))
                 #deletes media from the given collection
                 if request.form['submit'] == 'delete media':
                     toDelete = request.form
                     queries.deleteMediaFromCollection(conn, cID, toDelete)
-                    # updating the media collection after deleting
-                    mediaCollection = queries.getMediaCreatorInCollection(conn, cID)
-
                 #updates the media in the collection
                 if request.form['submit'] == 'update media':
                     toUpdate = request.form
                     print(toUpdate)
                     queries.updateMediaFromCollection(conn, cID, toUpdate)
-                    mediaCollection = queries.getMediaCreatorInCollection(conn, cID)
-
+                # retrieve updated mediaCollection after deleting or updating
+                mediaCollection = queries.getMediaCreatorInCollection(conn, cID)
                 return render_template('collectionPage.html', title="View Collection", isUser=True,
                     collectionID = cID, collectionName=collectionName, mediaInCollection = mediaCollection)
                 
-
 @app.route('/search/', methods = ['GET', 'POST'])
 def search():
     """ On the search page, users will initially see a list of all 
@@ -244,15 +241,12 @@ def search():
             return render_template('search.html', title="Explore",
                 all_users=all_users, all_media=all_media)
         if request.method == 'POST':
-            #gets responses from the form
+            # gets responses from the form
             query = request.form['query']
             kind = request.form['kind']
             mood = request.form['mood']
             genre = request.form['genre']
             audience = request.form['audience']
-            # Catherine: print mood, audience, and genre if specified
-            print("mood, audience, genre:", mood, audience, genre)
-
             # do search and store search results
             search_results = queries.do_search(conn, query, kind, mood, genre, audience)
             #if searched media does not exist
@@ -264,6 +258,7 @@ def search():
                 return render_template("search_results.html", title="Search Results",
                     query=query, kind=kind, mood=mood, genre=genre, audience=audience,
                     search_results=search_results, length=len(search_results))
+            #if user does not match search options
             elif kind == "username" and len(search_results) == 0:
                 flash("No such user exists in the system")
                 return render_template("search_results.html", title="Search Results",
@@ -284,7 +279,6 @@ def insert():
     else:
         conn = dbi.connect()
         creators = queries.getAllCreators(conn)
-
         if request.method == "GET":
             return render_template('insert.html', title="Insert New Media", allCreators=creators)
         if request.method == 'POST':
@@ -323,7 +317,7 @@ def media_info(mediaID):
     """page for details of the movie like release year and creator given the media ID"""
     if 'username' not in session:
         flash('You are not logged in. Please login or join.')
-        return redirect(url_for('index', title="GoodTimes", ))
+        return redirect(url_for('index', title="GoodTimes"))
     else:
         conn = dbi.connect()
         media_info = queries.get_media(conn, mediaID)
