@@ -256,10 +256,10 @@ def search():
             # do search and store search results
             search_results = queries.do_search(conn, query, kind, mood, genre, audience)
             #if searched media does not exist
-            if len(search_results) == 0 and kind== "media type" and mood=="" and genre=="" and audience=="":
+            if len(search_results) == 0 and kind== "media" and mood=="" and genre=="" and audience=="":
                 return redirect(url_for('insert'))
             #if media does not match filter options
-            elif kind== "media type" and len(search_results) == 0:
+            elif kind== "media" and len(search_results) == 0:
                 flash("No media matches these filter options")
                 return render_template("search_results.html", title="Search Results",
                     query=query, kind=kind, mood=mood, genre=genre, audience=audience,
