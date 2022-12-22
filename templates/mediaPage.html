@@ -3,7 +3,8 @@
 {% block content %}
 <h1 class="title">{{media_info.title}}</h1>
 <hr>
-<h2 class="details">{{media_info.title}} ({{media_info.type}}), released in {{media_info.releaseYear}}.</h2>
+<h3>Description:</h3>
+<h4 class="details">{{media_info.title}} is a {{media_info.type}}, which was released in {{media_info.releaseYear}}.</h4>
 <hr>
 <br>
 <form method = "post", action="{{ url_for('media_info', mediaID=mediaID)}}">
@@ -69,7 +70,19 @@
     </tr>
     {% for details in rated %}
     <tr data-tt={{details.mediaID}}>
+        {% if details.rating == 1%}
+        <td class="rating">⭐️</td>
+        {% elif details.rating == 2%}
+        <td class="rating">⭐️⭐️</td>
+        {% elif details.rating == 3%}
+        <td class="rating">⭐️⭐️⭐️</td>
+        {% elif details.rating == 4%}
+        <td class="rating">⭐️⭐️⭐️⭐️</td>
+        {% elif details.rating == 5%}
+        <td class="rating">⭐️⭐️⭐️⭐️⭐️</td>
+        {% else %}
         <td class="rating">{{details.rating}}</td>
+        {% endif%}
         <td class="review">{{details.review}}</td>
         <td class="moodtag">{{details.moodTag}}</td>
         <td class="genretag">{{details.genreTag}}</td>

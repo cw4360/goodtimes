@@ -29,7 +29,8 @@ def index():
 @app.route('/join/', methods=['GET', 'POST'])
 def join():
     """ Given a name, username, and a confirmed password, adds new user to
-    GoodTimes user table in database. Then logs user in."""
+    GoodTimes user table in database. Then logs user in. Requires user
+    to supply a name, username, password, and confirmed password. """
     if request.method == 'GET':
         # redirect user to index instead of using this endpoint
         return redirect(url_for('index'))
@@ -66,9 +67,8 @@ def join():
 
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
-    """ Given the username and password of an existing 
-    GoodTimes user, logs the user into their account and 
-    renders their user page."""
+    """ Given the username and password of an existing GoodTimes user, 
+    logs the user into their account and renders their user page."""
     if request.method == 'GET':
         # redirect user to index instead of using this endpoint
         return redirect(url_for('index'))
