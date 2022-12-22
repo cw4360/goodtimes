@@ -3,11 +3,16 @@
 {% block content%}
     <h1>Insert Media</h1>
     <form method="post" action="{{ url_for('insert') }}">
-        <br>
+        <label for="inputAdd">If the creator does not exist, add a creator here:</label>
+        <input type="text" placeholder="Creator to Add" id="inputAdd" name="inputAdd">
+        <input type="submit" name = "submit" value="Add New Creator">
+    </form>
+    <br>
+    <form method="post" action="{{ url_for('insert') }}">
         <div id="creatorDropdown" class="dropdownContent">
             <label for="media_creator">Media Creator:
                 <input type="text" placeholder="Filter dropdown" onkeyup="filterDropdown()" id="input" name="input">
-                <select name="media_creator" id="media_creator">
+                <select name="media_creator" id="media_creator" required>
                     <option value="">Choose Creator</option>
                     {% for creator in allCreators%}
                         <option value="{{creator.pID}}">{{creator.name}}</option>
@@ -15,21 +20,16 @@
                 </select>
             </label>
         </div>
-        <br>
-        <label for="inputAdd">If the creator does not exist, add a creator here:</label>
-        <input type="text" placeholder="Creator to Add" id="inputAdd" name="inputAdd">
-        <input type="submit" name = "submit" value="Add New Creator">
-        <br>
         <label for="media_title">Media Title:
-            <input id="media_title" type="text" name="media_title">
+            <input id="media_title" type="text" name="media_title" required>
         </label>
         <br>
         <label for="media_release">Media Release Year:
-            <input id="media_release" type="text" name="media_release">
+            <input id="media_release" type="text" name="media_release" required>
         </label>
         <br>
         <label for="media_type">Media Type:
-            <select name="media_type" id="media_type">
+            <select name="media_type" id="media_type" required>
                 <option value="movie">movie</option>
                 <option value="game">game</option>
                 <option value="book">book</option>
