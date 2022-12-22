@@ -49,6 +49,16 @@ def insert_media(conn, media_title, media_release, media_type, media_pID):
                 [media_title, media_release, media_type, media_pID])
    conn.commit()
 
+def insertCreator(conn, creator_name):
+   '''Given creator name, inserts into database'''
+   curs = dbi.dict_cursor(conn)
+   curs.execute('''insert into creator(name)
+                values (%s)''', 
+                [creator_name])
+   conn.commit()
+   curs.execute('select last_insert_id()')
+   return curs.fetchone()
+
 def getAllUsers(conn):
     '''returns uid, name, and username of all users'''
     curs = dbi.dict_cursor(conn)
@@ -58,14 +68,14 @@ def getAllUsers(conn):
 def getAllMedia(conn):
     '''returns mediaID, title, releaseYear, type, pID (list of dictionaries) of all media'''
     curs = dbi.dict_cursor(conn)
-    curs.execute('select * from media')
+    curs.execute('select * from media order by title')
     return curs.fetchall()
 
 def getAllMediaAndCreator(conn):
     '''returns mediaID< title, releaseYear, type, pID, and name of all media associated with a creator'''
     curs = dbi.dict_cursor(conn)
     curs.execute('''select mediaID, title, releaseYear, type, media.pID, name 
-                    from media inner join creator on media.pID = creator.pID
+                    from media left join creator on media.pID = creator.pID
                     order by title''')
     return curs.fetchall()
 
@@ -163,7 +173,7 @@ def getMediaCreatorInCollection(conn, cID):
     curs = dbi.dict_cursor(conn)
     curs.execute('''select title, releaseYear, type, media.mediaID, rating, review, moodTag, genreTag, audienceTag, name, media.pID
                 from mediaInCollections join media on mediaInCollections.mediaID = media.mediaID
-                join creator on creator.pID = media.pID
+                left join creator on creator.pID = media.pID
                 where collectionID = %s;''', [cID])
     return curs.fetchall()
 
