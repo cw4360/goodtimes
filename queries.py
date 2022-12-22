@@ -80,7 +80,7 @@ def getAllMedia(conn):
     return curs.fetchall()
 
 def getAllMediaAndCreator(conn):
-    '''returns mediaID< title, releaseYear, type, pID, and name of all media associated with a creator'''
+    '''returns mediaID, title, releaseYear, type, pID, and name of all media associated with a creator'''
     curs = dbi.dict_cursor(conn)
     curs.execute('''select mediaID, title, releaseYear, type, media.pID, name 
                     from media left join creator on media.pID = creator.pID
@@ -179,7 +179,7 @@ def getMediaInCollection(conn, cID):
 def getMediaCreatorInCollection(conn, cID):
     '''given a collectionID, returns all media with a creator in that collection'''
     curs = dbi.dict_cursor(conn)
-    curs.execute('''select title, releaseYear, type, media.mediaID, rating, review, moodTag, genreTag, audienceTag, name, media.pID
+    curs.execute('''select media.mediaID, title, releaseYear, type, rating, review, moodTag, genreTag, audienceTag, name, media.pID
                 from mediaInCollections join media on mediaInCollections.mediaID = media.mediaID
                 left join creator on creator.pID = media.pID
                 where collectionID = %s;''', [cID])
@@ -236,8 +236,7 @@ def isUsersCollection(conn, uid, cID):
     curs.execute('''select * from collections where uID=%s and collectionID=%s''', 
         [uid, cID])
     result = curs.fetchone()
-    print(result)
-    return result != None
+    return result != None # returns True if collection belongs to user, otherwise False
     
 
 def isMediaInCollection(conn, mediaID, cID):

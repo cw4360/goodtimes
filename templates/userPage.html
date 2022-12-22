@@ -9,29 +9,27 @@
         <!-- <p><input type="file"  accept="image/*" name="image" id="file"  onchange="loadFile(event)" style="display: none;"></p>
         <p><label for="file" style="cursor: pointer;">Upload/Change Profile Pic</label></p>
         <p><img alt="User's Profile Picture" id="output" width="250"/></p> -->
-
         
-        <script>
-
+        <!-- <script>
             var loadFile = function(event) {
                 var image = document.getElementById('output');
                 image.src = URL.createObjectURL(event.target.files[0]);
             };
-        </script>
-
+        </script> -->
     </div>
 
     {% if isUser %}
     <form method = "post" action = "{{url_for('user', username=userInfo.username)}}">
+        <!-- Edit Name -->
         <label for="name">Edit Name:</label>
         <input id="name" name="name" type="text">
         <input type="submit" name="submit" value="update name">
         <br>
-
+        <!-- Create Collection -->
         <label for="createCollection">Create Collection:</label>
         <input id="createCollection" type="submit" name="submit" value="create collection">
         <br>
-
+        <!-- View Collection -->
         <label for="viewForm">View Collection:</label>
         <select name = "collectionID" id="viewForm">
             {% for collection in collections%}
@@ -40,7 +38,7 @@
         </select>
         <input type="submit" name="submit" value="view">
         <br>
-
+        <!-- Delete Collection -->
         <label for="deleteForm">Delete Collection:</label>
         <select name = "collectionID" id="deleteForm">
             {% for collection in collections%}
@@ -63,9 +61,5 @@
         </a>
         {% endfor %}
     </div>
-    <!-- {% for user in search_results %}
-                <li>{{user.name}} ({{user.username}})</li>
-            {% endfor %} -->
-
 </div>
 {% endblock %}
