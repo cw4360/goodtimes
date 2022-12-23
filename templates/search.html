@@ -2,6 +2,8 @@
 
 {% block content %}
 <h1 class="description"> Explore all users:</h1>
+<p class="instructions">To see user profiles and view other's collections, 
+    click on the specific user page below or through a search!</p>
 <div class="user-container">
     {% for user in all_users %}
     <a href="{{ url_for('user', username=user.username) }}">

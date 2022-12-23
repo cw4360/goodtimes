@@ -134,7 +134,7 @@ def user(username):
         uid = session['uid'] ## get current user's UID
         # get given user's name, username, and uid
         userInfo = queries.getUserInfo(conn, username) 
-        collections = queries.getAllCollections1(conn, username)
+        collections = queries.getAllCollectionsByUserName(conn, username)
 
         if uid != userInfo['uid']: # if user is viewing another user's profile
             return render_template('userPage.html', title="My Profile", 
@@ -168,7 +168,7 @@ def user(username):
 
 @app.route('/createCollection/', methods = ["GET", "POST"])
 def createCollection():
-    """creates a new collection"""
+    """ Renders a page to create a new collection for the user. """
     if 'username' not in session:
         flash('You are not logged in. Please login or join.')
         return redirect(url_for('index'))
@@ -179,13 +179,12 @@ def createCollection():
             return render_template('createCollectionForm.html', title="Create Collection")
         else:
             newID = queries.insertCollection(conn, formInput, session['uid'])
-            # newID = queries.getLatestId(conn)
             # redirects to collection detail page, will be updated with correct url_for()
             return redirect(url_for('collectionPage', title="View Collection", cID=newID['last_insert_id()']))
 
 @app.route('/collection/<cID>', methods = ["GET", "POST"])
 def collectionPage(cID): 
-    """collection detail page, includes all media in that collection"""
+    """ Renders the collection detail page, includes all media in that collection. """
     if 'username' not in session:
         flash('You are not logged in. Please login or join.')
         return redirect(url_for('index', title="GoodTimes",))
@@ -272,7 +271,7 @@ def search():
 
 @app.route('/insert/', methods=["GET", "POST"])
 def insert():
-    """renders form for inserting new media"""
+    """ Renders form for inserting new media into the database of all media. """
     if 'username' not in session:
         flash('You are not logged in. Please login or join.')
         return redirect(url_for('index', title="GoodTimes",))
@@ -286,21 +285,20 @@ def insert():
                 #insert a new creator
                 print(request.form)
                 creatorName = request.form['inputAdd']
-                #return a new pID?
+                #return a new pID
                 newPID = queries.insertCreator(conn, creatorName)
                 creators = queries.getAllCreators(conn) #update list of creators
                 flash("Creator successfully inserted! Search again in the media creator dropdown.")
                 return render_template('insert.html', title="Insert New Media", allCreators=creators)
-                #reload dropdown w/o reloading page?
             if request.form['submit'] == 'Insert Media':
                 media_title = request.form['media_title']
                 media_release = request.form['media_release']
                 media_type = request.form['media_type']
                 media_pID = request.form['media_creator']
-                #queries.getMediaInCollection(conn, ) #where is this used?
                 # detect incomplete form
                 if media_title == "" or media_release == "" or media_type == "" or media_pID =="":
-                    return render_template('insert.html', title="Insert New Media", msg="Form is not complete, fill in missing info", allCreators=creators)
+                    return render_template('insert.html', title="Insert New Media", 
+                    msg="Form is not complete, fill in missing info", allCreators=creators)
                 # if media id doesn't exist
                 else:
                     # if no media creator was selected, change value to NULL
@@ -309,12 +307,14 @@ def insert():
                     # insert the media
                     queries.insert_media(conn, media_title, media_release, media_type, media_pID)
                     flash('Media successfully inserted!')
-                    return render_template('insert.html', title="Insert New Media", media_title=media_title, media_release=media_release, 
+                    return render_template('insert.html', title="Insert New Media", 
+                        media_title=media_title, media_release=media_release, 
                         media_type=media_type, allCreators=creators)
             
 @app.route('/media_details/<mediaID>', methods = ["GET", "POST"])
 def media_info(mediaID):
-    """page for details of the movie like release year and creator given the media ID"""
+    """ Renders the movie detail page to include a description (e.g. release year and creator
+        and the ratings previously made for that movie."""
     if 'username' not in session:
         flash('You are not logged in. Please login or join.')
         return redirect(url_for('index', title="GoodTimes"))
@@ -340,11 +340,7 @@ def media_info(mediaID):
                     # updating the media in the collection
                     mediaCollection = queries.getMediaInCollection(conn, cID)
                     flash("Media successfully inserted into collection!")
-                    # would we want to render the collection page? not sure
                     return redirect(url_for('collectionPage',  title="View Collection", cID= cID)) 
-                    #return render_template('mediaPage.html', title="Media Detail Page",
-                    #media_info= media_info, mediaID=mediaID, 
-                    #uid=uid, collections=collections, rated=rated)
                 else:
                     flash("The media you tried to insert is already in the specified collection!")
                     return redirect(url_for('collectionPage',  title="View Collection", cID= cID))

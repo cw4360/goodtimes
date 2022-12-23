@@ -7,9 +7,6 @@
     <a href="{{ url_for('user', username=session['username']) }}">profile</a>
     <a href="{{ url_for('logout') }}">logout</a>
 </div>
-<!-- <a href="{{ url_for('createCollection') }}">Create a Collection</a> 
-<a href="{{ url_for('collectionPage', cID=3) }}">Collection Page, ID 3</a>
-<a href="{{ url_for('insert') }}">Insert New Media</a> -->
 {% endblock %}
 
 {% block searchbar %}
